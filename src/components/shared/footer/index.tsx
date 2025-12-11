@@ -1,12 +1,40 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
+import { motion, type Variants } from "framer-motion";
+
+const footerVariants: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: [0.21, 0.47, 0.32, 0.98],
+      delay: 0.1,
+    },
+  },
+};
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-background/95">
+    <motion.footer
+      className="border-t border-border bg-background/95"
+      variants={footerVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
+    >
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between md:px-8 md:text-sm">
-        <div className="flex flex-col gap-2">
+        <motion.div
+          className="flex flex-col gap-2"
+          initial={{ opacity: 0, x: -12 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, ease: "easeOut", delay: 0.15 }}
+        >
           <div className="flex items-center gap-2">
             <Image
               src="/NoBgOnlyLogoSmall.png"
@@ -19,9 +47,15 @@ export function Footer() {
             </p>
           </div>
           <p>En uke for teknologi og kreativitet i Hamar-regionen.</p>
-        </div>
+        </motion.div>
 
-        <div className="flex flex-wrap gap-2">
+        <motion.div
+          className="flex flex-wrap gap-2"
+          initial={{ opacity: 0, x: 12 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, ease: "easeOut", delay: 0.2 }}
+        >
           <Button
             asChild
             variant="link"
@@ -46,8 +80,8 @@ export function Footer() {
           >
             <Link href="#info">Personvern &amp; cookies</Link>
           </Button>
-        </div>
+        </motion.div>
       </div>
-    </footer>
+    </motion.footer>
   );
 }
