@@ -22,7 +22,7 @@ export function Header() {
             asChild
             variant="ghost"
             size="sm"
-            className="h-auto px-2 py-1 text-[9px] tracking-[0.08em] md:text-[11px]"
+            className="h-auto px-2 md:px-3"
           >
             <Link href="#program">Program</Link>
           </Button>
@@ -30,7 +30,7 @@ export function Header() {
             asChild
             variant="ghost"
             size="sm"
-            className="h-auto px-2 py-1 text-[9px] tracking-[0.08em] md:text-[11px]"
+            className="h-auto px-2 md:px-3"
           >
             <Link href="#tracks">Spor</Link>
           </Button>
@@ -38,7 +38,7 @@ export function Header() {
             asChild
             variant="ghost"
             size="sm"
-            className="h-auto px-2 py-1 text-[9px] tracking-[0.08em] md:text-[11px]"
+            className="h-auto px-2 md:px-3"
           >
             <Link href="#about">Om HamarTech</Link>
           </Button>
@@ -46,7 +46,7 @@ export function Header() {
             asChild
             variant="ghost"
             size="sm"
-            className="h-auto px-2 py-1 text-[9px] tracking-[0.08em] md:text-[11px]"
+            className="h-auto px-2 md:px-3"
           >
             <Link href="#info">Praktisk info</Link>
           </Button>
@@ -54,16 +54,13 @@ export function Header() {
 
         {/* CTA */}
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden border-border px-3 py-1.5 text-[9px] font-medium text-muted-foreground hover:border-ring hover:text-foreground md:inline-flex md:text-[10px]"
-          >
+          <Button variant="outline" size="sm" className="hidden md:inline-flex">
             Logg inn
           </Button>
           <Button
             size="sm"
-            className="rounded-full bg-[linear-gradient(90deg,#22E4FF,#5B5BFF,#F044FF)] px-4 py-1.5 text-[9px] font-semibold text-background shadow-md hover:brightness-110 md:px-5 md:py-2 md:text-[10px]"
+            // variant="default" вже за замовчуванням → градієнт з button.tsx
+            className="px-4 md:px-5"
           >
             Se program
           </Button>

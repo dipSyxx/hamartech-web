@@ -24,21 +24,24 @@ export function Footer() {
           <Button
             asChild
             variant="link"
-            className="px-1 py-0 text-[9px] md:text-[10px]"
+            size="sm"
+            className="px-1 py-0 text-muted-foreground hover:text-foreground"
           >
             <Link href="#program">Program</Link>
           </Button>
           <Button
             asChild
             variant="link"
-            className="px-1 py-0 text-[9px] md:text-[10px]"
+            size="sm"
+            className="px-1 py-0 text-muted-foreground hover:text-foreground"
           >
             <Link href="#about">Om HamarTech</Link>
           </Button>
           <Button
             asChild
             variant="link"
-            className="px-1 py-0 text-[9px] md:text-[10px]"
+            size="sm"
+            className="px-1 py-0 text-muted-foreground hover:text-foreground"
           >
             <Link href="#info">Personvern &amp; cookies</Link>
           </Button>
