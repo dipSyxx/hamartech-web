@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nb" className="dark" suppressHydrationWarning>
+    <html lang="nb" className="dark scroll-smooth" suppressHydrationWarning>
       <body
         className={`
           ${sans.variable}
