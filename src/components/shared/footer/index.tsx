@@ -5,21 +5,22 @@ import Image from "next/image";
 export function Footer() {
   return (
     <footer className="border-t border-border bg-background/95">
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 text-[9px] text-muted-foreground md:flex-row md:items-center md:justify-between md:px-8 md:text-[10px]">
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between md:px-8 md:text-sm">
         <div className="flex flex-col gap-2">
-          <div className="flex items-end">
+          <div className="flex items-center gap-2">
             <Image
               src="/NoBgOnlyLogoSmall.png"
               alt="HamarTech"
-              width={48}
-              height={48}
+              width={40}
+              height={40}
             />
-            <p className="font-pixel text-[30px] leading-none tracking-[0.16em] text-foreground">
-              AMARTECH
+            <p className="text-lg font-semibold tracking-wide text-foreground md:text-xl">
+              HamarTech
             </p>
           </div>
           <p>En uke for teknologi og kreativitet i Hamar-regionen.</p>
         </div>
+
         <div className="flex flex-wrap gap-2">
           <Button
             asChild

@@ -7,11 +7,10 @@ import { cn } from "@/lib/utils";
 const buttonVariants = cva(
   // Базовий стиль для всіх кнопок
   "inline-flex items-center justify-center gap-2 whitespace-nowrap " +
-    "rounded-full border border-transparent font-pixel " +
-    "text-[9px] md:text-[10px] tracking-[0.16em] uppercase leading-none " +
+    "rounded-full border border-transparent text-sm font-medium leading-none " +
     "transition-colors transition-transform " +
     "disabled:pointer-events-none disabled:opacity-50 " +
-    "[&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-3 [&_svg]:shrink-0 " +
+    "[&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 " +
     "outline-none focus-visible:ring-2 focus-visible:ring-ring/70 " +
     "focus-visible:ring-offset-2 focus-visible:ring-offset-background " +
     "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
@@ -43,11 +42,11 @@ const buttonVariants = cva(
           "hover:underline hover:bg-transparent px-0 h-auto",
       },
       size: {
-        default: "h-8 px-4 md:h-9 md:px-5",
-        sm: "h-7 px-3 text-[8px] md:text-[9px]",
-        lg: "h-9 px-6 md:h-10 md:px-7",
-        icon: "size-8 md:size-9 rounded-full",
-        "icon-sm": "size-7 rounded-full",
+        default: "h-9 px-4 md:h-10 md:px-5",
+        sm: "h-8 px-3 text-xs md:text-sm",
+        lg: "h-10 px-6 text-base md:h-11 md:px-7",
+        icon: "size-9 rounded-full",
+        "icon-sm": "size-8 rounded-full",
         "icon-lg": "size-10 rounded-full",
       },
     },

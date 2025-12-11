@@ -1,25 +1,18 @@
-// app/layout.tsx
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Press_Start_2P } from "next/font/google";
+import { Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+
 import { Header } from "@/components/shared/header";
 import { Footer } from "@/components/shared/footer";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const sans = Space_Grotesk({
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const mono = Geist_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
-});
-
-// Піксельний шрифт = дефолтний
-const pixelFont = Press_Start_2P({
-  variable: "--font-pixel",
-  subsets: ["latin"],
-  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -37,10 +30,10 @@ export default function RootLayout({
     <html lang="nb" className="dark" suppressHydrationWarning>
       <body
         className={`
-          ${geistSans.variable}
-          ${geistMono.variable}
-          ${pixelFont.variable}
-          antialiased font-pixel
+          ${sans.variable}
+          ${mono.variable}
+          font-sans
+          antialiased
         `}
       >
         <div className="flex min-h-screen flex-col bg-background text-foreground">
