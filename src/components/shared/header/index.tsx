@@ -111,7 +111,7 @@ export function Header() {
           <Button variant="outline" size="sm" className="hidden md:inline-flex">
             Logg inn
           </Button>
-          <Button size="sm" className="px-4 md:px-5">
+          <Button size="sm" className="border-0px-4 md:px-5">
             Se program
           </Button>
         </motion.div>

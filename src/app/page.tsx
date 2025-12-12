@@ -23,6 +23,7 @@ import {
   scaleIn,
   staggerContainer,
 } from "@/lib/animations/presets";
+import { BackgroundGlows } from "@/components/shared/background-glows";
 
 const TRACKS = [
   {
@@ -159,7 +160,7 @@ export default function Home() {
               className="flex flex-wrap gap-3"
               variants={fadeInUp(0.15)}
             >
-              <Button asChild size="lg">
+              <Button asChild size="lg" className="border-0">
                 <Link href="#program">
                   Se program
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -411,7 +412,7 @@ export default function Home() {
 
             {/* Fakta / highlight-kort */}
             <motion.div className="h-full" variants={scaleIn(0.1)}>
-              <Card className="border-border/70">
+              <Card className="border-border/70 py-0">
                 <CardContent className="rounded-2xl bg-[radial-gradient(circle_at_top,#22E4FF22,transparent_60%),radial-gradient(circle_at_bottom,#F044FF22,transparent_60%)] p-4">
                   <h3 className="text-sm font-semibold text-foreground">
                     Hvorfor HamarTech?
@@ -643,39 +644,6 @@ function Stat({ label, value, icon: Icon }: StatProps) {
           {label}
         </span>
       </div>
-    </div>
-  );
-}
-
-/** Глобальні градієнтові blur-кружки на фоні всієї сторінки */
-function BackgroundGlows() {
-  return (
-    <div className="pointer-events-none absolute inset-0">
-      {/* Верхній лівий */}
-      <motion.div
-        className="absolute -left-32 -top-32 h-72 w-72 rounded-full bg-[#22E4FF] opacity-25 blur-3xl"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 0.25, scale: 1 }}
-        transition={{ duration: 1.2, ease: "easeOut" }}
-      />
-      {/* Верхній правий */}
-      <motion.div
-        className="absolute right-[-40px] top-0 h-80 w-80 rounded-full bg-[#F044FF] opacity-20 blur-3xl"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 0.2, scale: 1 }}
-        transition={{ duration: 1.4, ease: "easeOut", delay: 0.1 }}
-      />
-      {/* Центр / низ */}
-      <motion.div
-        className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-[#5B5BFF] opacity-20 blur-3xl"
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{
-          opacity: 0.2,
-          scale: 1,
-          y: 0,
-        }}
-        transition={{ duration: 1.6, ease: "easeOut", delay: 0.15 }}
-      />
     </div>
   );
 }
