@@ -64,7 +64,7 @@ type EventItem = {
   requiresRegistration: boolean;
 };
 
-const TRACK_META: Record<
+export const TRACK_META: Record<
   TrackId,
   {
     label: string;
@@ -158,21 +158,18 @@ const DAY_ORDER = DAY_OPTIONS.reduce((acc, option, index) => {
   return acc;
 }, {} as Record<DayId, number>);
 
-const DAY_META = DAY_OPTIONS.reduce(
-  (acc, option) => {
-    if (option.id !== "all") {
-      acc[option.id as DayId] = option as {
-        id: DayId;
-        label: string;
-        shortLabel: string;
-      };
-    }
-    return acc;
-  },
-  {} as Record<DayId, { id: DayId; label: string; shortLabel: string }>
-);
+const DAY_META = DAY_OPTIONS.reduce((acc, option) => {
+  if (option.id !== "all") {
+    acc[option.id as DayId] = option as {
+      id: DayId;
+      label: string;
+      shortLabel: string;
+    };
+  }
+  return acc;
+}, {} as Record<DayId, { id: DayId; label: string; shortLabel: string }>);
 
-const EVENTS: EventItem[] = [
+export const EVENTS: EventItem[] = [
   // DAG 1 – CREATIVE / MEDIA ARTS
   {
     id: "day1-opening",
@@ -462,7 +459,8 @@ export default function Program() {
 
   const normalizedSearch = normalizeText(search);
   const searchTerms = React.useMemo(
-    () => (normalizedSearch ? normalizedSearch.split(/\s+/).filter(Boolean) : []),
+    () =>
+      normalizedSearch ? normalizedSearch.split(/\s+/).filter(Boolean) : [],
     [normalizedSearch]
   );
 
