@@ -229,7 +229,7 @@ export const EVENTS: EventItem[] = [
   },
   {
     id: "day2-gamedev",
-    slug: "møt-spillutviklerne-workshop",
+    slug: "mot-spillutviklerne-workshop",
     title: "Møt spillutviklerne – miniworkshop",
     description:
       "Kort introduksjon til spilldesign, historiefortelling og prototyping med eksempler fra lokale spillstudioer.",
@@ -267,7 +267,7 @@ export const EVENTS: EventItem[] = [
   },
   {
     id: "day3-xr-skole",
-    slug: "xr-for-skole-og-læring",
+    slug: "xr-for-skole-og-laering",
     title: "XR for skole og læring",
     description:
       "Faglig seminar om hvordan VR/AR kan brukes i undervisning, med eksempler fra lokale prosjekter.",
