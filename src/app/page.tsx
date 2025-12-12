@@ -113,7 +113,7 @@ export default function Home() {
               variants={fadeInUp(0.15)}
             >
               <Button asChild size="lg" className="border-0">
-                <Link href="#program">
+                <Link href="/program">
                   Se program
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>

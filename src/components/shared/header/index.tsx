@@ -114,7 +114,7 @@ export function Header() {
             Logg inn
           </Button>
           <Button size="sm" className="border-0px-4 md:px-5">
-            Se program
+            <Link href="/program">Se program</Link>
           </Button>
         </motion.div>
       </div>
