@@ -1,17 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { ArrowRight, CalendarRange, Layers3, Handshake } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
 import {
   fadeInUp,
   fadeIn,
   scaleIn,
   staggerContainer,
 } from "@/lib/animations/presets";
-import type { LucideIcon } from "lucide-react";
 
 const TRACKS = [
   {
@@ -103,7 +114,7 @@ const EVENT_PREVIEW = [
 export default function Home() {
   return (
     <div className="relative overflow-hidden">
-      {/* Глобальні градієнтні blur-кружки */}
+      {/* Глобальні градієнтові blur-кружки */}
       <BackgroundGlows />
 
       {/* HERO */}
@@ -174,15 +185,17 @@ export default function Home() {
             </motion.div>
           </div>
 
-          {/* Right column – декоративний блок */}
+          {/* Right column – dekorativt kort */}
           <motion.div className="flex-1" variants={scaleIn(0.15)}>
-            <div className="relative mx-auto max-w-xs rounded-[32px] border border-border/70 bg-gradient-to-br from-background via-background/60 to-background/20 p-6 shadow-[0_24px_60px_rgba(0,0,0,0.7)]">
-              <div className="aspect-square rounded-3xl bg-[radial-gradient(circle_at_top,#22E4FF33,transparent_55%),radial-gradient(circle_at_bottom,#F044FF33,transparent_55%)]" />
-              <p className="mt-4 text-xs text-muted-foreground md:text-sm">
-                En digital festivalhub for Hamar – med spill, XR, media arts og
-                åpne hus hos aktørene i byen.
-              </p>
-            </div>
+            <Card className="relative mx-auto max-w-xs">
+              <CardContent className="p-6">
+                <div className="aspect-square rounded-3xl bg-[radial-gradient(circle_at_top,#22E4FF33,transparent_55%),radial-gradient(circle_at_bottom,#F044FF33,transparent_55%)]" />
+                <p className="mt-4 text-xs text-muted-foreground md:text-sm">
+                  En digital festivalhub for Hamar – med spill, XR, media arts
+                  og åpne hus hos aktørene i byen.
+                </p>
+              </CardContent>
+            </Card>
           </motion.div>
         </div>
       </motion.section>
@@ -216,19 +229,21 @@ export default function Home() {
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {TRACKS.map((track, index) => (
-              <motion.article
-                key={track.id}
-                className={cn(
-                  "flex h-full flex-col rounded-2xl border bg-background/40 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.45)]",
-                  track.colorClass
-                )}
-                variants={fadeInUp(0.05 * index)}
-              >
-                <h3 className="mb-2 text-sm font-semibold">{track.label}</h3>
-                <p className="text-sm text-muted-foreground md:text-base">
-                  {track.description}
-                </p>
-              </motion.article>
+              <motion.div key={track.id} variants={fadeInUp(0.05 * index)}>
+                <Card
+                  className={cn(
+                    "h-full",
+                    track.colorClass // додає border/bg для кожного спора
+                  )}
+                >
+                  <CardHeader>
+                    <CardTitle className="text-sm font-semibold">
+                      {track.label}
+                    </CardTitle>
+                    <CardDescription>{track.description}</CardDescription>
+                  </CardHeader>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -278,47 +293,51 @@ export default function Home() {
 
           <div className="grid gap-4 md:grid-cols-2">
             {EVENT_PREVIEW.map((event, index) => (
-              <motion.article
-                key={event.id}
-                className="flex h-full flex-col rounded-2xl border border-border/70 bg-background/60 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.55)]"
-                variants={fadeInUp(0.05 * index)}
-              >
-                <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                  <span className="uppercase tracking-[0.16em]">
-                    {event.dateLabel}
-                  </span>
-                  <span>{event.time}</span>
-                </div>
+              <motion.div key={event.id} variants={fadeInUp(0.05 * index)}>
+                <Card className="h-full border-border/70">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                      <span className="uppercase tracking-[0.16em]">
+                        {event.dateLabel}
+                      </span>
+                      <span>{event.time}</span>
+                    </div>
+                    <CardTitle className="mt-3 text-base md:text-lg">
+                      {event.title}
+                    </CardTitle>
+                    <CardDescription className="mt-2">
+                      {event.description}
+                    </CardDescription>
+                  </CardHeader>
 
-                <h3 className="mt-3 text-base font-semibold text-foreground md:text-lg">
-                  {event.title}
-                </h3>
+                  <CardContent className="pt-0">
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "px-2 py-1",
+                          event.trackColorClass // колір треку
+                        )}
+                      >
+                        {event.trackLabel}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className="border-border/60 bg-background/40 px-2 py-1 text-muted-foreground"
+                      >
+                        {event.targetGroup}
+                      </Badge>
+                    </div>
 
-                <p className="mt-2 text-sm text-muted-foreground md:text-base">
-                  {event.description}
-                </p>
-
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <span
-                    className={cn(
-                      "inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium",
-                      event.trackColorClass
-                    )}
-                  >
-                    {event.trackLabel}
-                  </span>
-                  <span className="inline-flex items-center rounded-full border border-border/60 px-2 py-1 text-xs font-medium text-muted-foreground">
-                    {event.targetGroup}
-                  </span>
-                </div>
-
-                <div className="mt-3 text-xs text-muted-foreground">
-                  <span className="font-semibold uppercase tracking-[0.16em]">
-                    Sted:
-                  </span>{" "}
-                  <span>{event.venue}</span>
-                </div>
-              </motion.article>
+                    <div className="mt-3 text-xs text-muted-foreground">
+                      <span className="font-semibold uppercase tracking-[0.16em]">
+                        Sted:
+                      </span>{" "}
+                      <span>{event.venue}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -391,43 +410,42 @@ export default function Home() {
             </motion.div>
 
             {/* Fakta / highlight-kort */}
-            <motion.div
-              className="rounded-3xl border border-border/70 bg-background/60 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.6)]"
-              variants={scaleIn(0.1)}
-            >
-              <div className="rounded-2xl bg-[radial-gradient(circle_at_top,#22E4FF22,transparent_60%),radial-gradient(circle_at_bottom,#F044FF22,transparent_60%)] p-4">
-                <h3 className="text-sm font-semibold text-foreground">
-                  Hvorfor HamarTech?
-                </h3>
-                <div className="mt-4 space-y-3 text-sm text-muted-foreground md:text-base">
-                  <p>
-                    • Hamar er den første norske byen med UNESCO-status innen{" "}
-                    <span className="text-foreground">Media Arts</span>.
-                  </p>
-                  <p>
-                    • Store klynger innen{" "}
-                    <span className="text-foreground">
-                      spill, VR og digitalt innhold
-                    </span>{" "}
-                    gjør byen til et naturlig knutepunkt for teknologi og
-                    kreativitet.
-                  </p>
-                  <p>
-                    • HamarTech kobler{" "}
-                    <span className="text-foreground">
-                      skoler, næringsliv, kulturinstitusjoner og frivillighet
-                    </span>{" "}
-                    i en felles festivaluke.
-                  </p>
-                  <p>
-                    • Målet er å gjøre teknologimiljøene{" "}
-                    <span className="text-foreground">
-                      tilgjengelige for alle
-                    </span>{" "}
-                    – fra barn og unge til profesjonelle aktører.
-                  </p>
-                </div>
-              </div>
+            <motion.div className="h-full" variants={scaleIn(0.1)}>
+              <Card className="border-border/70">
+                <CardContent className="rounded-2xl bg-[radial-gradient(circle_at_top,#22E4FF22,transparent_60%),radial-gradient(circle_at_bottom,#F044FF22,transparent_60%)] p-4">
+                  <h3 className="text-sm font-semibold text-foreground">
+                    Hvorfor HamarTech?
+                  </h3>
+                  <div className="mt-4 space-y-3 text-sm text-muted-foreground md:text-base">
+                    <p>
+                      • Hamar er den første norske byen med UNESCO-status innen{" "}
+                      <span className="text-foreground">Media Arts</span>.
+                    </p>
+                    <p>
+                      • Store klynger innen{" "}
+                      <span className="text-foreground">
+                        spill, VR og digitalt innhold
+                      </span>{" "}
+                      gjør byen til et naturlig knutepunkt for teknologi og
+                      kreativitet.
+                    </p>
+                    <p>
+                      • HamarTech kobler{" "}
+                      <span className="text-foreground">
+                        skoler, næringsliv, kulturinstitusjoner og frivillighet
+                      </span>{" "}
+                      i en felles festivaluke.
+                    </p>
+                    <p>
+                      • Målet er å gjøre teknologimiljøene{" "}
+                      <span className="text-foreground">
+                        tilgjengelige for alle
+                      </span>{" "}
+                      – fra barn og unge til profesjonelle aktører.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
           </div>
         </div>
@@ -553,49 +571,50 @@ export default function Home() {
             </motion.div>
 
             {/* Høyrekolonne – kompakt oversiktskort */}
-            <motion.div
-              className="rounded-3xl border border-border/70 bg-background/60 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.6)]"
-              variants={scaleIn(0.1)}
-            >
-              <h3 className="text-sm font-semibold text-foreground">
-                Kort oppsummert
-              </h3>
-              <div className="mt-4 space-y-3 text-sm text-muted-foreground md:text-base">
-                <p>
-                  • <span className="text-foreground">Målgruppe:</span> alle
-                  innbyggere i Hamar-regionen – barn, ungdom, familier,
-                  studenter og næringsliv.
-                </p>
-                <p>
-                  • <span className="text-foreground">Tilgjengelighet:</span>{" "}
-                  fokus på sentrale lokasjoner, universell utforming og
-                  lavterskeltilbud for barn og unge.
-                </p>
-                <p>
-                  • <span className="text-foreground">Reise:</span> kort
-                  gangavstand mellom flere arenaer i Hamar sentrum, samt enkel
-                  tilgang med tog og buss.
-                </p>
-                <p>
-                  • <span className="text-foreground">Digital deltakelse:</span>{" "}
-                  utvalgte talks og verksteder strømmes, og enkelte aktiviteter
-                  er kun digitale.
-                </p>
-              </div>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="border-border/70"
-                >
-                  <Link href="/program">Se program og billetter</Link>
-                </Button>
-                <Button asChild variant="ghost" size="sm">
-                  <Link href="/praktisk-info">Detaljert praktisk info</Link>
-                </Button>
-              </div>
+            <motion.div className="h-full" variants={scaleIn(0.1)}>
+              <Card className="border-border/70">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold text-foreground">
+                    Kort oppsummert
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground md:text-base">
+                  <p>
+                    • <span className="text-foreground">Målgruppe:</span> alle
+                    innbyggere i Hamar-regionen – barn, ungdom, familier,
+                    studenter og næringsliv.
+                  </p>
+                  <p>
+                    • <span className="text-foreground">Tilgjengelighet:</span>{" "}
+                    fokus på sentrale lokasjoner, universell utforming og
+                    lavterskeltilbud for barn og unge.
+                  </p>
+                  <p>
+                    • <span className="text-foreground">Reise:</span> kort
+                    gangavstand mellom flere arenaer i Hamar sentrum, samt enkel
+                    tilgang med tog og buss.
+                  </p>
+                  <p>
+                    •{" "}
+                    <span className="text-foreground">Digital deltakelse:</span>{" "}
+                    utvalgte talks og verksteder strømmes, og enkelte
+                    aktiviteter er kun digitale.
+                  </p>
+                </CardContent>
+                <CardFooter className="mt-2 flex flex-wrap gap-2">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="border-border/70"
+                  >
+                    <Link href="/program">Se program og billetter</Link>
+                  </Button>
+                  <Button asChild variant="ghost" size="sm">
+                    <Link href="/praktisk-info">Detaljert praktisk info</Link>
+                  </Button>
+                </CardFooter>
+              </Card>
             </motion.div>
           </div>
         </div>
