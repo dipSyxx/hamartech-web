@@ -39,7 +39,7 @@ import { VENUES } from "@/lib/data/venues";
 import { TRACK_META } from "@/lib/data/program-meta";
 import { EVENTS } from "@/lib/data/events";
 
-export default function ProgramEventPage() {
+export default function ProgramEvent() {
   const params = useParams<{ slug?: string | string[] }>();
   const slug = React.useMemo(() => {
     const value = params?.slug;
