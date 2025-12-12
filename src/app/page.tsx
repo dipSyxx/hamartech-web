@@ -295,7 +295,13 @@ export default function Home() {
           <div className="grid gap-4 md:grid-cols-2">
             {EVENT_PREVIEW.map((event, index) => (
               <motion.div key={event.id} variants={fadeInUp(0.05 * index)}>
-                <Card className="h-full border-border/70">
+                <Card
+                  className={cn(
+                    "border-border/80 bg-background/75 shadow-[0_12px_35px_rgba(0,0,0,0.6)]",
+                    "transition-[border-color,background-color,box-shadow] duration-200 ease-out",
+                    "hover:border-primary/70 hover:bg-background/90 hover:shadow-[0_18px_55px_rgba(0,0,0,0.75)]"
+                  )}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                       <span className="uppercase tracking-[0.16em]">
