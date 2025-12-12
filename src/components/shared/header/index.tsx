@@ -59,12 +59,14 @@ export function Header() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, ease: "easeOut", delay: 0.05 }}
         >
-          <Image
-            src="/NoBgOnlyLogoSmall.PNG"
-            alt="HamarTech"
-            width={48}
-            height={48}
-          />
+          <Link href="/">
+            <Image
+              src="/NoBgOnlyLogoSmall.PNG"
+              alt="HamarTech"
+              width={48}
+              height={48}
+            />
+          </Link>
         </motion.div>
 
         {/* Навігація */}
@@ -78,7 +80,7 @@ export function Header() {
             size="sm"
             className="h-auto px-2 md:px-3"
           >
-            <Link href="#program">Program</Link>
+            <Link href="/program">Program</Link>
           </Button>
           <Button
             asChild
