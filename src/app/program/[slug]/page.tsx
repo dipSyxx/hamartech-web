@@ -1,4 +1,3 @@
-// app/program/[slug]/page.tsx
 "use client";
 
 import * as React from "react";
@@ -36,7 +35,9 @@ import {
 } from "lucide-react";
 import { useParams } from "next/navigation";
 
-import { EVENTS, TRACK_META } from "../page";
+import { VENUES } from "@/lib/data/venues";
+import { TRACK_META } from "@/lib/data/program-meta";
+import { EVENTS } from "@/lib/data/events";
 
 export default function ProgramEventPage() {
   const params = useParams<{ slug?: string | string[] }>();
@@ -49,6 +50,14 @@ export default function ProgramEventPage() {
     () => EVENTS.find((item) => item.slug === slug),
     [slug]
   );
+  const venue = event ? VENUES[event.venueId] : null;
+  const mapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const mapEmbedSrc =
+    venue && mapsApiKey
+      ? `https://www.google.com/maps/embed/v1/search?key=${mapsApiKey}&q=${encodeURIComponent(
+          venue.mapQuery
+        )}`
+      : null;
 
   if (!event) {
     return (
@@ -257,6 +266,61 @@ export default function ProgramEventPage() {
                   </Button>
                 </CardFooter>
               </Card>
+
+              {venue && (
+                <motion.section
+                  className="mt-6 space-y-3"
+                  variants={scaleIn(0.08)}
+                >
+                  <h2 className="text-sm font-semibold md:text-base">
+                    Sted & kart
+                  </h2>
+                  <p className="text-xs text-muted-foreground md:text-sm">
+                    {venue.label}
+                    {venue.address && (
+                      <>
+                        {" · "}
+                        <span className="text-foreground">{venue.address}</span>
+                      </>
+                    )}
+                  </p>
+
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    <Button asChild variant="outline" size="sm">
+                      <a
+                        href={venue.googleMapsUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Åpne i Google Maps
+                      </a>
+                    </Button>
+                    <Button asChild variant="ghost" size="sm">
+                      <a
+                        href={venue.openStreetMapUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Åpne i OpenStreetMap
+                      </a>
+                    </Button>
+                  </div>
+
+                  {mapEmbedSrc && (
+                    <div className="mt-3 overflow-hidden rounded-2xl border border-border/60 bg-background/80 shadow-[0_18px_45px_rgba(0,0,0,0.65)]">
+                      <iframe
+                        title={`Kart – ${venue.label}`}
+                        src={mapEmbedSrc}
+                        width="100%"
+                        height="260"
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+                </motion.section>
+              )}
             </motion.div>
 
             {/* Right: compact practical info */}
