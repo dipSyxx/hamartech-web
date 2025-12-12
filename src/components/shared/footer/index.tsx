@@ -37,7 +37,7 @@ export function Footer() {
         >
           <div className="flex items-center gap-2">
             <Image
-              src="/NoBgOnlyLogoSmall.png"
+              src="/NoBgOnlyLogoSmall.PNG"
               alt="HamarTech"
               width={40}
               height={40}
