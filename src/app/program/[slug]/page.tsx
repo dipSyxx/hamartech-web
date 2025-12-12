@@ -36,9 +36,6 @@ import {
 } from "lucide-react";
 import { useParams } from "next/navigation";
 
-// ВАЖЛИВО: у app/program/page.tsx треба додати
-//   export { EVENTS, TRACK_META };
-// щоб цей імпорт працював
 import { EVENTS, TRACK_META } from "../page";
 
 export default function ProgramEventPage() {
