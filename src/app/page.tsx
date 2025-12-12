@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { EVENTS } from "@/lib/data/events";
+import { TRACK_META } from "@/lib/data/program-meta";
 
 import {
   fadeInUp,
@@ -24,6 +26,7 @@ import {
   staggerContainer,
 } from "@/lib/animations/presets";
 import { BackgroundGlows } from "@/components/shared/background-glows";
+import React from "react";
 
 const TRACKS = [
   {
@@ -58,57 +61,6 @@ const TRACKS = [
     description:
       "Samarbeid, innovasjon, næringslivsseminarer og pitch-sesjoner.",
     colorClass: "border-chart-5/70 bg-chart-5/5",
-  },
-];
-
-const EVENT_PREVIEW = [
-  {
-    id: "day1-opening",
-    dateLabel: "Dag 1 – Opening & Media Arts",
-    time: "18:00–21:00",
-    title: "Åpningskveld: Media Arts & performance",
-    trackLabel: "Creative",
-    trackColorClass: "border-chart-1/70 text-chart-1 bg-chart-1/10",
-    targetGroup: "Åpent for alle",
-    venue: "Hamar kulturhus",
-    description:
-      "Offisiell åpning av HamarTech med digital kunst, live performance, korte innlegg og introduksjon av ukas program.",
-  },
-  {
-    id: "day2-games",
-    dateLabel: "Dag 2 – Games & E-sport",
-    time: "16:00–22:00",
-    title: "Spilltesting & e-sportkveld",
-    trackLabel: "Games",
-    trackColorClass: "border-chart-2/70 text-chart-2 bg-chart-2/10",
-    targetGroup: "Ungdom & unge voksne",
-    venue: "PARK Hamar / spillsone",
-    description:
-      "Prøv nye spill fra Hamar Game Collective, delta i e-sportturneringer og møt spillutviklere i uformelle sessions.",
-  },
-  {
-    id: "day3-xr",
-    dateLabel: "Dag 3 – XR & Immersive Learning",
-    time: "12:00–17:00",
-    title: "XR-lab med VRINN",
-    trackLabel: "XR",
-    trackColorClass: "border-chart-3/70 text-chart-3 bg-chart-3/10",
-    targetGroup: "Studenter, lærere, fagmiljø",
-    venue: "VRINN / Høgskolen i Innlandet",
-    description:
-      "Hands-on demoer av VR/AR, workshops om bruk av XR i læring og presentasjoner fra VRINN-partnere.",
-  },
-  {
-    id: "day4-youth",
-    dateLabel: "Dag 4 – Youth & Coding",
-    time: "17:00–20:00",
-    title: "Kodeklubb & maker-kveld",
-    trackLabel: "Youth",
-    trackColorClass: "border-chart-4/70 text-chart-4 bg-chart-4/10",
-    targetGroup: "Barn & ungdom",
-    venue: "Katta teknologiske treningssenter (KTT)",
-    description:
-      "Lavterskel kodeverksted, kreativ bruk av teknologi og små game jam-aktiviteter for barn og unge.",
   },
 ];
 
@@ -293,59 +245,76 @@ export default function Home() {
           </motion.header>
 
           <div className="grid gap-4 md:grid-cols-2">
-            {EVENT_PREVIEW.map((event, index) => (
-              <motion.div key={event.id} variants={fadeInUp(0.05 * index)}>
-                <Card
-                  className={cn(
-                    "border-border/80 bg-background/75 shadow-[0_12px_35px_rgba(0,0,0,0.6)]",
-                    "transition-[border-color,background-color,box-shadow] duration-200 ease-out",
-                    "hover:border-primary/70 hover:bg-background/90 hover:shadow-[0_18px_55px_rgba(0,0,0,0.75)]"
-                  )}
+            {React.useMemo(() => EVENTS.slice(0, 4), []).map((event, index) => {
+              const track = TRACK_META[event.trackId];
+
+              return (
+                <motion.div
+                  key={event.id}
+                  variants={fadeInUp(0.05 * index)}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.2 }}
                 >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                      <span className="uppercase tracking-[0.16em]">
-                        {event.dateLabel}
-                      </span>
-                      <span>{event.time}</span>
-                    </div>
-                    <CardTitle className="mt-3 text-base md:text-lg">
-                      {event.title}
-                    </CardTitle>
-                    <CardDescription className="mt-2">
-                      {event.description}
-                    </CardDescription>
-                  </CardHeader>
+                  <Card
+                    className={cn(
+                      "border-border/80 bg-background/75 shadow-[0_12px_35px_rgba(0,0,0,0.6)]",
+                      "transition-[border-color,background-color,box-shadow] duration-200 ease-out",
+                      "hover:border-primary/70 hover:bg-background/90 hover:shadow-[0_18px_55px_rgba(0,0,0,0.75)]"
+                    )}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                        <span className="uppercase tracking-[0.16em]">
+                          {event.dayLabel}
+                        </span>
+                        <span>{event.time}</span>
+                      </div>
+                      <CardTitle className="mt-3 text-base md:text-lg">
+                        {event.title}
+                      </CardTitle>
+                      <CardDescription className="mt-2">
+                        {event.description}
+                      </CardDescription>
+                    </CardHeader>
 
-                  <CardContent className="pt-0">
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "px-2 py-1",
-                          event.trackColorClass // колір треку
-                        )}
-                      >
-                        {event.trackLabel}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className="border-border/60 bg-background/40 px-2 py-1 text-muted-foreground"
-                      >
-                        {event.targetGroup}
-                      </Badge>
-                    </div>
+                    <CardContent className="pt-0">
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className={cn("px-2 py-1", track.badgeClass)}
+                        >
+                          {track.shortLabel}
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className="border-border/60 bg-background/40 px-2 py-1 text-muted-foreground"
+                        >
+                          {event.targetGroup}
+                        </Badge>
+                      </div>
 
-                    <div className="mt-3 text-xs text-muted-foreground">
-                      <span className="font-semibold uppercase tracking-[0.16em]">
-                        Sted:
-                      </span>{" "}
-                      <span>{event.venue}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                      <div className="mt-3 text-xs text-muted-foreground">
+                        <span className="font-semibold uppercase tracking-[0.16em]">
+                          Sted:
+                        </span>{" "}
+                        <span>{event.venue}</span>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="flex justify-end px-6 pb-5 pt-2">
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="border-border/70"
+                      >
+                        <Link href={`/program/${event.slug}`}>Se detaljer</Link>
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </motion.section>
