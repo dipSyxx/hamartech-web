@@ -60,7 +60,7 @@ export function Header() {
           transition={{ duration: 0.4, ease: "easeOut", delay: 0.05 }}
         >
           <Image
-            src="/NoBgOnlyLogoSmall.png"
+            src="NoBgOnlyLogoSmall.png"
             alt="HamarTech"
             width={48}
             height={48}
