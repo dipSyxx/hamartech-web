@@ -2,9 +2,6 @@ import type { Metadata } from "next";
 import { Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
-import { Header } from "@/components/shared/header";
-import { Footer } from "@/components/shared/footer";
-
 const sans = Space_Grotesk({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -36,10 +33,8 @@ export default function RootLayout({
           antialiased
         `}
       >
-        <div className="flex min-h-screen flex-col bg-background text-foreground">
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
+        <div className="min-h-screen bg-background text-foreground">
+          {children}
         </div>
       </body>
     </html>

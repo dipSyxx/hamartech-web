@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 
-import { registerSchema, type RegisterValues } from "@/lib/validation/auth";
+import { loginSchema, type LoginValues } from "@/lib/validation/auth";
 import {
   fadeIn,
   scaleIn,
@@ -23,26 +23,24 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
-import { User2, Mail, LockKeyhole, ArrowRight, Sparkles } from "lucide-react";
+import { Mail, LockKeyhole, ArrowRight, Sparkles } from "lucide-react";
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegisterValues>({
-    resolver: zodResolver(registerSchema),
+  } = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
-      name: "",
       email: "",
       password: "",
-      confirmPassword: "",
     },
   });
 
-  // Placeholder submit handler – replace with real registration later
-  const onSubmit = (values: RegisterValues) => {
-    console.log("Register submit (stub):", values);
+  // Placeholder submit handler – replace with real auth later
+  const onSubmit = (values: LoginValues) => {
+    console.log("Login submit (stub):", values);
   };
 
   return (
@@ -78,43 +76,15 @@ export default function RegisterPage() {
         <Card className="relative rounded-[1.6rem] border-border/70 bg-background shadow-[0_24px_70px_rgba(0,0,0,0.8)]">
           <CardHeader className="pb-4">
             <CardTitle className="text-2xl font-semibold md:text-3xl">
-              Opprett konto
+              Logg inn
             </CardTitle>
             <CardDescription className="mt-2 text-sm text-muted-foreground md:text-[15px]">
-              Lag en HamarTech-profil for å reservere plasser og lagre
-              favorittarrangementer.
+              Få oversikt over dine reservasjoner og billetter til HamarTech-uka.
             </CardDescription>
           </CardHeader>
 
           <CardContent className="pt-2">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              {/* Navn */}
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="name"
-                  className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground"
-                >
-                  Navn
-                </label>
-                <div className="relative">
-                  <User2 className="pointer-events-none absolute left-2 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-foreground/80" />
-                  <Input
-                    id="name"
-                    type="text"
-                    autoComplete="name"
-                    placeholder="Ditt fulle navn"
-                    className="pl-8"
-                    aria-invalid={!!errors.name}
-                    {...register("name")}
-                  />
-                </div>
-                {errors.name && (
-                  <p className="text-xs text-destructive">
-                    {errors.name.message}
-                  </p>
-                )}
-              </div>
-
               {/* E-post */}
               <div className="space-y-1.5">
                 <label
@@ -155,8 +125,8 @@ export default function RegisterPage() {
                   <Input
                     id="password"
                     type="password"
-                    autoComplete="new-password"
-                    placeholder="Minst 8 tegn"
+                    autoComplete="current-password"
+                    placeholder="••••••••"
                     className="pl-8"
                     aria-invalid={!!errors.password}
                     {...register("password")}
@@ -169,39 +139,16 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              {/* Bekreft passord */}
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="confirmPassword"
-                  className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground"
+              {/* Допоміжний рядок: забув пароль / інфо */}
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground md:text-xs">
+                <span>Vi sender deg ingen spam.</span>
+                <Link
+                  href="#"
+                  className="text-foreground/80 underline-offset-4 hover:text-foreground hover:underline"
                 >
-                  Bekreft passord
-                </label>
-                <div className="relative">
-                  <LockKeyhole className="pointer-events-none absolute left-2 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-foreground/80" />
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    autoComplete="new-password"
-                    placeholder="Skriv passordet på nytt"
-                    className="pl-8"
-                    aria-invalid={!!errors.confirmPassword}
-                    {...register("confirmPassword")}
-                  />
-                </div>
-                {errors.confirmPassword && (
-                  <p className="text-xs text-destructive">
-                    {errors.confirmPassword.message}
-                  </p>
-                )}
+                  Glemt passord?
+                </Link>
               </div>
-
-              {/* Terms / info */}
-              <p className="text-[11px] text-muted-foreground md:text-xs">
-                Ved å opprette konto samtykker du til at HamarTech kan lagre
-                nødvendig informasjon om dine reservasjoner. Du kan slette
-                kontoen din senere.
-              </p>
 
               {/* Submit */}
               <Button
@@ -209,7 +156,7 @@ export default function RegisterPage() {
                 size="lg"
                 className="mt-1 w-full justify-center"
               >
-                Opprett konto
+                Logg inn
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </form>
@@ -217,12 +164,12 @@ export default function RegisterPage() {
 
           <CardFooter className="flex flex-col items-center gap-2 border-t border-border/60 pt-4 text-xs text-muted-foreground md:text-sm">
             <p>
-              Har du allerede konto?{" "}
+              Har du ikke konto ennå?{" "}
               <Link
-                href="/auth/login"
+                href="/register"
                 className="text-foreground underline-offset-4 hover:text-primary hover:underline"
               >
-                Logg inn
+                Registrer deg
               </Link>
             </p>
           </CardFooter>
