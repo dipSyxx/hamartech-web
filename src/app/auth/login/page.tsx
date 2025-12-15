@@ -94,7 +94,7 @@ export default function LoginPage() {
                   E-post
                 </label>
                 <div className="relative">
-                  <Mail className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Mail className="pointer-events-none absolute left-2 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-foreground/80" />
                   <Input
                     id="email"
                     type="email"
@@ -121,7 +121,7 @@ export default function LoginPage() {
                   Passord
                 </label>
                 <div className="relative">
-                  <LockKeyhole className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <LockKeyhole className="pointer-events-none absolute left-2 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-foreground/80" />
                   <Input
                     id="password"
                     type="password"
