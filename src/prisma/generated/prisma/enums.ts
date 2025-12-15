@@ -16,3 +16,52 @@ export const Role = {
 } as const
 
 export type Role = (typeof Role)[keyof typeof Role]
+
+
+export const TrackId = {
+  creative: 'creative',
+  games: 'games',
+  xr: 'xr',
+  youth: 'youth',
+  business: 'business'
+} as const
+
+export type TrackId = (typeof TrackId)[keyof typeof TrackId]
+
+
+export const DayId = {
+  day1: 'day1',
+  day2: 'day2',
+  day3: 'day3',
+  day4: 'day4',
+  day5: 'day5',
+  day6: 'day6',
+  day7: 'day7'
+} as const
+
+export type DayId = (typeof DayId)[keyof typeof DayId]
+
+
+export const ReservationStatus = {
+  CONFIRMED: 'CONFIRMED',
+  WAITLIST: 'WAITLIST',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type ReservationStatus = (typeof ReservationStatus)[keyof typeof ReservationStatus]
+
+
+export const AuditAction = {
+  EVENT_CREATE: 'EVENT_CREATE',
+  EVENT_UPDATE: 'EVENT_UPDATE',
+  EVENT_DELETE: 'EVENT_DELETE',
+  VENUE_CREATE: 'VENUE_CREATE',
+  VENUE_UPDATE: 'VENUE_UPDATE',
+  VENUE_DELETE: 'VENUE_DELETE',
+  RESERVATION_APPROVE: 'RESERVATION_APPROVE',
+  RESERVATION_REJECT: 'RESERVATION_REJECT',
+  RESERVATION_CANCEL: 'RESERVATION_CANCEL',
+  USER_ROLE_CHANGE: 'USER_ROLE_CHANGE'
+} as const
+
+export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]

@@ -1,8 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// prisma/schema.prisma
 
 generator client {
   provider = "prisma-client"
@@ -13,23 +9,263 @@ datasource db {
   provider = "postgresql"
 }
 
+//
+// ENUMS
+//
+
 enum Role {
   USER
   ADMIN
   APPROVER
 }
 
+enum TrackId {
+  creative
+  games
+  xr
+  youth
+  business
+}
+
+enum DayId {
+  day1
+  day2
+  day3
+  day4
+  day5
+  day6
+  day7
+}
+
+enum ReservationStatus {
+  CONFIRMED
+  WAITLIST
+  CANCELLED
+}
+
+enum AuditAction {
+  EVENT_CREATE
+  EVENT_UPDATE
+  EVENT_DELETE
+  VENUE_CREATE
+  VENUE_UPDATE
+  VENUE_DELETE
+  RESERVATION_APPROVE
+  RESERVATION_REJECT
+  RESERVATION_CANCEL
+  USER_ROLE_CHANGE
+}
+
+//
+// CORE
+//
+
 model User {
-  id           String @id @default(cuid())
-  email        String @unique
+  id           String  @id @default(cuid())
+  email        String  @unique
   name         String?
-  phone        String @unique
+  phone        String  @unique
   passwordHash String
 
-  role Role @default(USER)
+  role         Role    @default(USER)
+
+  // корисно для email verification flow
+  emailVerifiedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // relations
+  reservations          Reservation[]          @relation("UserReservations")
+  approvedReservations  Reservation[]          @relation("ReservationApprovedBy")
+  cancelledReservations Reservation[]          @relation("ReservationCancelledBy")
+  checkInsPerformed     ReservationCheckIn[]   @relation("CheckInPerformedBy")
+  emailCodes            EmailVerificationCode[]
+  passwordResetTokens   PasswordResetToken[]
+  auditLogs             AuditLog[]
+
   @@index([role])
+  @@index([email])
+}
+
+//
+// LOCATIONS (для інтерактивної карти)
+//
+
+model Venue {
+  id        String  @id @default(cuid())
+  name  String               // e.g. "Hamar kulturhus"
+  label String               // display label
+
+  address   String?
+  city      String
+  country   String? @default("Norway")
+
+  // embed / deep links (all present in data)
+  mapQuery         String
+  googleMapsUrl    String
+  openStreetMapUrl String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events Event[]
+
+  @@index([city])
+}
+
+//
+// PROGRAM
+//
+
+model Event {
+  id        String  @id @default(cuid())
+  slug        String  @unique
+  title       String
+  description String
+
+  trackId     TrackId
+  dayId       DayId
+
+  // display fields taken from seeded data
+  dayLabel    String               // e.g. "Dag 1 – Opening & Media Arts"
+  weekday     String               // e.g. "Mandag"
+  dateLabel   String               // e.g. "Uke 42"
+  timeLabel   String               // e.g. "18:00–21:00"
+  targetGroup String               // e.g. "Åpent for alle"
+  host        String               // e.g. "Hamar kommune & Hamar kulturhus"
+
+  // business flags
+  isFree      Boolean @default(true)
+  requiresRegistration Boolean @default(false)
+
+  // venue mapping (label kept alongside relation for quick reads)
+  venueId     String
+  venueLabel  String
+  venue       Venue   @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  // optional timing (can be filled later for calendaring)
+  startsAt    DateTime?
+  endsAt      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reservations Reservation[]
+
+  @@index([trackId, dayId])
+  @@index([venueId])
+}
+
+//
+// RESERVATIONS / MIN-SIDE / APPROVALS
+//
+
+model Reservation {
+  id        String @id @default(cuid())
+
+  userId    String
+  user      User   @relation("UserReservations", fields: [userId], references: [id], onDelete: Cascade)
+
+  eventId   String
+  event     Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  status    ReservationStatus @default(WAITLIST)
+
+  // якщо треба кілька квитків на одне бронювання
+  quantity  Int @default(1)
+
+  // зручно для QR / check-in
+  ticketCode String? @unique
+
+  // approval/cancel metadata
+  approvedById String?
+  approvedBy   User? @relation("ReservationApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt   DateTime?
+
+  cancelledById String?
+  cancelledBy   User? @relation("ReservationCancelledBy", fields: [cancelledById], references: [id], onDelete: SetNull)
+  cancelledAt   DateTime?
+  cancelReason  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  checkIns ReservationCheckIn[]
+
+  // один юзер -> одна бронь на подію (найчастіший кейс)
+  @@unique([userId, eventId])
+  @@index([status])
+  @@index([eventId])
+}
+
+model ReservationCheckIn {
+  id             String @id @default(cuid())
+  reservationId  String
+  reservation    Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  scannedAt      DateTime @default(now())
+  scannedById    String?
+  scannedBy      User? @relation("CheckInPerformedBy", fields: [scannedById], references: [id], onDelete: SetNull)
+
+  @@index([reservationId])
+  @@index([scannedAt])
+}
+
+
+//
+// EMAIL VERIFICATION / RESET PASSWORD (кодами/токенами)
+//
+
+model EmailVerificationCode {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // не зберігай код plaintext — зберігай hash
+  codeHash  String
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+//
+// AUDIT LOG (admin/approver actions)
+//
+
+model AuditLog {
+  id        String @id @default(cuid())
+  actorId   String?
+  actor     User?  @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  action    AuditAction
+  entityType String
+  entityId   String
+
+  meta      Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }

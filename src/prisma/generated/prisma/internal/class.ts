@@ -20,7 +20,7 @@ const config: runtime.GetPrismaClientConfig = {
   "clientVersion": "7.1.0",
   "engineVersion": "ab635e6b9d606fa5c8fb8b1a7f909c3c3c1c98ba",
   "activeProvider": "postgresql",
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nenum Role {\n  USER\n  ADMIN\n  APPROVER\n}\n\nmodel User {\n  id           String  @id @default(cuid())\n  email        String  @unique\n  name         String?\n  phone        String  @unique\n  passwordHash String\n\n  role Role @default(USER)\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@index([role])\n}\n",
+  "inlineSchema": "// prisma/schema.prisma\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\n//\n// ENUMS\n//\n\nenum Role {\n  USER\n  ADMIN\n  APPROVER\n}\n\nenum TrackId {\n  creative\n  games\n  xr\n  youth\n  business\n}\n\nenum DayId {\n  day1\n  day2\n  day3\n  day4\n  day5\n  day6\n  day7\n}\n\nenum ReservationStatus {\n  CONFIRMED\n  WAITLIST\n  CANCELLED\n}\n\nenum AuditAction {\n  EVENT_CREATE\n  EVENT_UPDATE\n  EVENT_DELETE\n  VENUE_CREATE\n  VENUE_UPDATE\n  VENUE_DELETE\n  RESERVATION_APPROVE\n  RESERVATION_REJECT\n  RESERVATION_CANCEL\n  USER_ROLE_CHANGE\n}\n\n//\n// CORE\n//\n\nmodel User {\n  id           String  @id @default(cuid())\n  email        String  @unique\n  name         String?\n  phone        String  @unique\n  passwordHash String\n\n  role Role @default(USER)\n\n  // корисно для email verification flow\n  emailVerifiedAt DateTime?\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  // relations\n  reservations          Reservation[]           @relation(\"UserReservations\")\n  approvedReservations  Reservation[]           @relation(\"ReservationApprovedBy\")\n  cancelledReservations Reservation[]           @relation(\"ReservationCancelledBy\")\n  checkInsPerformed     ReservationCheckIn[]    @relation(\"CheckInPerformedBy\")\n  emailCodes            EmailVerificationCode[]\n  passwordResetTokens   PasswordResetToken[]\n  auditLogs             AuditLog[]\n\n  @@index([role])\n  @@index([email])\n}\n\n//\n// LOCATIONS (для інтерактивної карти)\n//\n\nmodel Venue {\n  id    String @id @default(cuid())\n  name  String // e.g. \"Hamar kulturhus\"\n  label String // display label\n\n  address String?\n  city    String\n  country String? @default(\"Norway\")\n\n  // embed / deep links (all present in data)\n  mapQuery         String\n  googleMapsUrl    String\n  openStreetMapUrl String\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  events Event[]\n\n  @@index([city])\n}\n\n//\n// PROGRAM\n//\n\nmodel Event {\n  id          String @id @default(cuid())\n  slug        String @unique\n  title       String\n  description String\n\n  trackId TrackId\n  dayId   DayId\n\n  // display fields taken from seeded data\n  dayLabel    String // e.g. \"Dag 1 – Opening & Media Arts\"\n  weekday     String // e.g. \"Mandag\"\n  dateLabel   String // e.g. \"Uke 42\"\n  timeLabel   String // e.g. \"18:00–21:00\"\n  targetGroup String // e.g. \"Åpent for alle\"\n  host        String // e.g. \"Hamar kommune & Hamar kulturhus\"\n\n  // business flags\n  isFree               Boolean @default(true)\n  requiresRegistration Boolean @default(false)\n\n  // venue mapping (label kept alongside relation for quick reads)\n  venueId    String\n  venueLabel String\n  venue      Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)\n\n  // optional timing (can be filled later for calendaring)\n  startsAt DateTime?\n  endsAt   DateTime?\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  reservations Reservation[]\n\n  @@index([trackId, dayId])\n  @@index([venueId])\n}\n\n//\n// RESERVATIONS / MIN-SIDE / APPROVALS\n//\n\nmodel Reservation {\n  id String @id @default(cuid())\n\n  userId String\n  user   User   @relation(\"UserReservations\", fields: [userId], references: [id], onDelete: Cascade)\n\n  eventId String\n  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)\n\n  status ReservationStatus @default(WAITLIST)\n\n  // якщо треба кілька квитків на одне бронювання\n  quantity Int @default(1)\n\n  // зручно для QR / check-in\n  ticketCode String? @unique\n\n  // approval/cancel metadata\n  approvedById String?\n  approvedBy   User?     @relation(\"ReservationApprovedBy\", fields: [approvedById], references: [id], onDelete: SetNull)\n  approvedAt   DateTime?\n\n  cancelledById String?\n  cancelledBy   User?     @relation(\"ReservationCancelledBy\", fields: [cancelledById], references: [id], onDelete: SetNull)\n  cancelledAt   DateTime?\n  cancelReason  String?\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  checkIns ReservationCheckIn[]\n\n  // один юзер -> одна бронь на подію (найчастіший кейс)\n  @@unique([userId, eventId])\n  @@index([status])\n  @@index([eventId])\n}\n\nmodel ReservationCheckIn {\n  id            String      @id @default(cuid())\n  reservationId String\n  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)\n\n  scannedAt   DateTime @default(now())\n  scannedById String?\n  scannedBy   User?    @relation(\"CheckInPerformedBy\", fields: [scannedById], references: [id], onDelete: SetNull)\n\n  @@index([reservationId])\n  @@index([scannedAt])\n}\n\n//\n// EMAIL VERIFICATION / RESET PASSWORD (кодами/токенами)\n//\n\nmodel EmailVerificationCode {\n  id     String @id @default(cuid())\n  userId String\n  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  // не зберігай код plaintext — зберігай hash\n  codeHash  String\n  expiresAt DateTime\n  usedAt    DateTime?\n\n  createdAt DateTime @default(now())\n\n  @@index([userId])\n  @@index([expiresAt])\n}\n\nmodel PasswordResetToken {\n  id     String @id @default(cuid())\n  userId String\n  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  tokenHash String\n  expiresAt DateTime\n  usedAt    DateTime?\n\n  createdAt DateTime @default(now())\n\n  @@index([userId])\n  @@index([expiresAt])\n}\n\n//\n// AUDIT LOG (admin/approver actions)\n//\n\nmodel AuditLog {\n  id      String  @id @default(cuid())\n  actorId String?\n  actor   User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)\n\n  action     AuditAction\n  entityType String\n  entityId   String\n\n  meta Json?\n\n  createdAt DateTime @default(now())\n\n  @@index([action])\n  @@index([entityType, entityId])\n  @@index([createdAt])\n}\n",
   "runtimeDataModel": {
     "models": {},
     "enums": {},
@@ -28,7 +28,7 @@ const config: runtime.GetPrismaClientConfig = {
   }
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"phone\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"passwordHash\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"enum\",\"type\":\"Role\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"phone\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"passwordHash\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"enum\",\"type\":\"Role\"},{\"name\":\"emailVerifiedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"reservations\",\"kind\":\"object\",\"type\":\"Reservation\",\"relationName\":\"UserReservations\"},{\"name\":\"approvedReservations\",\"kind\":\"object\",\"type\":\"Reservation\",\"relationName\":\"ReservationApprovedBy\"},{\"name\":\"cancelledReservations\",\"kind\":\"object\",\"type\":\"Reservation\",\"relationName\":\"ReservationCancelledBy\"},{\"name\":\"checkInsPerformed\",\"kind\":\"object\",\"type\":\"ReservationCheckIn\",\"relationName\":\"CheckInPerformedBy\"},{\"name\":\"emailCodes\",\"kind\":\"object\",\"type\":\"EmailVerificationCode\",\"relationName\":\"EmailVerificationCodeToUser\"},{\"name\":\"passwordResetTokens\",\"kind\":\"object\",\"type\":\"PasswordResetToken\",\"relationName\":\"PasswordResetTokenToUser\"},{\"name\":\"auditLogs\",\"kind\":\"object\",\"type\":\"AuditLog\",\"relationName\":\"AuditLogToUser\"}],\"dbName\":null},\"Venue\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"label\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"address\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"city\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"country\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"mapQuery\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"googleMapsUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"openStreetMapUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"events\",\"kind\":\"object\",\"type\":\"Event\",\"relationName\":\"EventToVenue\"}],\"dbName\":null},\"Event\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"slug\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"trackId\",\"kind\":\"enum\",\"type\":\"TrackId\"},{\"name\":\"dayId\",\"kind\":\"enum\",\"type\":\"DayId\"},{\"name\":\"dayLabel\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"weekday\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"dateLabel\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"timeLabel\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"targetGroup\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"host\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isFree\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"requiresRegistration\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"venueId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"venueLabel\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"venue\",\"kind\":\"object\",\"type\":\"Venue\",\"relationName\":\"EventToVenue\"},{\"name\":\"startsAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"endsAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"reservations\",\"kind\":\"object\",\"type\":\"Reservation\",\"relationName\":\"EventToReservation\"}],\"dbName\":null},\"Reservation\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"UserReservations\"},{\"name\":\"eventId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"event\",\"kind\":\"object\",\"type\":\"Event\",\"relationName\":\"EventToReservation\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"ReservationStatus\"},{\"name\":\"quantity\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"ticketCode\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"approvedById\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"approvedBy\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"ReservationApprovedBy\"},{\"name\":\"approvedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"cancelledById\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"cancelledBy\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"ReservationCancelledBy\"},{\"name\":\"cancelledAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"cancelReason\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"checkIns\",\"kind\":\"object\",\"type\":\"ReservationCheckIn\",\"relationName\":\"ReservationToReservationCheckIn\"}],\"dbName\":null},\"ReservationCheckIn\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"reservationId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"reservation\",\"kind\":\"object\",\"type\":\"Reservation\",\"relationName\":\"ReservationToReservationCheckIn\"},{\"name\":\"scannedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"scannedById\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"scannedBy\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"CheckInPerformedBy\"}],\"dbName\":null},\"EmailVerificationCode\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"EmailVerificationCodeToUser\"},{\"name\":\"codeHash\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expiresAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"usedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"PasswordResetToken\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"PasswordResetTokenToUser\"},{\"name\":\"tokenHash\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expiresAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"usedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"AuditLog\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"actorId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"actor\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"AuditLogToUser\"},{\"name\":\"action\",\"kind\":\"enum\",\"type\":\"AuditAction\"},{\"name\":\"entityType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"entityId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"meta\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
@@ -183,6 +183,76 @@ export interface PrismaClient<
     * ```
     */
   get user(): Prisma.UserDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.venue`: Exposes CRUD operations for the **Venue** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Venues
+    * const venues = await prisma.venue.findMany()
+    * ```
+    */
+  get venue(): Prisma.VenueDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.event`: Exposes CRUD operations for the **Event** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Events
+    * const events = await prisma.event.findMany()
+    * ```
+    */
+  get event(): Prisma.EventDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.reservation`: Exposes CRUD operations for the **Reservation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Reservations
+    * const reservations = await prisma.reservation.findMany()
+    * ```
+    */
+  get reservation(): Prisma.ReservationDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.reservationCheckIn`: Exposes CRUD operations for the **ReservationCheckIn** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ReservationCheckIns
+    * const reservationCheckIns = await prisma.reservationCheckIn.findMany()
+    * ```
+    */
+  get reservationCheckIn(): Prisma.ReservationCheckInDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.emailVerificationCode`: Exposes CRUD operations for the **EmailVerificationCode** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EmailVerificationCodes
+    * const emailVerificationCodes = await prisma.emailVerificationCode.findMany()
+    * ```
+    */
+  get emailVerificationCode(): Prisma.EmailVerificationCodeDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.passwordResetToken`: Exposes CRUD operations for the **PasswordResetToken** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PasswordResetTokens
+    * const passwordResetTokens = await prisma.passwordResetToken.findMany()
+    * ```
+    */
+  get passwordResetToken(): Prisma.PasswordResetTokenDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.auditLog`: Exposes CRUD operations for the **AuditLog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AuditLogs
+    * const auditLogs = await prisma.auditLog.findMany()
+    * ```
+    */
+  get auditLog(): Prisma.AuditLogDelegate<ExtArgs, { omit: OmitOpts }>;
 }
 
 export function getPrismaClientClass(): PrismaClientConstructor {

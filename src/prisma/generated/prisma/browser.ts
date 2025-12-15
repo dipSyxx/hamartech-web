@@ -22,3 +22,38 @@ export * from './enums';
  * 
  */
 export type User = Prisma.UserModel
+/**
+ * Model Venue
+ * 
+ */
+export type Venue = Prisma.VenueModel
+/**
+ * Model Event
+ * 
+ */
+export type Event = Prisma.EventModel
+/**
+ * Model Reservation
+ * 
+ */
+export type Reservation = Prisma.ReservationModel
+/**
+ * Model ReservationCheckIn
+ * 
+ */
+export type ReservationCheckIn = Prisma.ReservationCheckInModel
+/**
+ * Model EmailVerificationCode
+ * 
+ */
+export type EmailVerificationCode = Prisma.EmailVerificationCodeModel
+/**
+ * Model PasswordResetToken
+ * 
+ */
+export type PasswordResetToken = Prisma.PasswordResetTokenModel
+/**
+ * Model AuditLog
+ * 
+ */
+export type AuditLog = Prisma.AuditLogModel
