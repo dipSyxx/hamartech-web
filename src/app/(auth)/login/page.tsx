@@ -1,16 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 
 import { loginSchema, type LoginValues } from "@/lib/validation/auth";
-import {
-  fadeIn,
-  scaleIn,
-  staggerContainer,
-} from "@/lib/animations/presets";
+import { fadeIn, scaleIn, staggerContainer } from "@/lib/animations/presets";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +25,13 @@ import { Input } from "@/components/ui/input";
 import { Mail, LockKeyhole, ArrowRight, Sparkles } from "lucide-react";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/min-side";
+
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -33,14 +39,31 @@ export default function LoginPage() {
   } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      identifier: "",
       password: "",
     },
   });
 
-  // Placeholder submit handler – replace with real auth later
-  const onSubmit = (values: LoginValues) => {
-    console.log("Login submit (stub):", values);
+  const onSubmit = async (values: LoginValues) => {
+    setServerError(null);
+    setIsSubmitting(true);
+
+    const result = await signIn("credentials", {
+      identifier: values.identifier,
+      password: values.password,
+      redirect: false,
+      callbackUrl,
+    });
+
+    setIsSubmitting(false);
+
+    if (result?.error) {
+      setServerError("Ugyldig e-post/telefon eller passord.");
+      return;
+    }
+
+    router.push(result?.url ?? callbackUrl);
+    router.refresh();
   };
 
   return (
@@ -64,7 +87,7 @@ export default function LoginPage() {
         className="relative overflow-hidden rounded-[1.7rem] p-[2px]"
         variants={scaleIn(0.02)}
       >
-        {/* Анімований градієнтний бордер */}
+        {/* Анімований градієнтний бордер (лише фон) */}
         <motion.div
           aria-hidden
           className="pointer-events-none absolute inset-0 rounded-[1.7rem] bg-[conic-gradient(from_0deg,#22E4FF,#5B5BFF,#F044FF,#22E4FF)] opacity-85 blur-[6px]"
@@ -85,29 +108,29 @@ export default function LoginPage() {
 
           <CardContent className="pt-2">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              {/* E-post */}
+              {/* E-post eller telefon */}
               <div className="space-y-1.5">
                 <label
-                  htmlFor="email"
+                  htmlFor="identifier"
                   className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground"
                 >
-                  E-post
+                  E-post eller telefon
                 </label>
                 <div className="relative">
                   <Mail className="pointer-events-none absolute left-2 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-foreground/80" />
                   <Input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="din.epost@eksempel.no"
+                    id="identifier"
+                    type="text"
+                    autoComplete="username"
+                    placeholder="din.epost@eksempel.no eller +47 900 00 000"
                     className="pl-8"
-                    aria-invalid={!!errors.email}
-                    {...register("email")}
+                    aria-invalid={!!errors.identifier}
+                    {...register("identifier")}
                   />
                 </div>
-                {errors.email && (
+                {errors.identifier && (
                   <p className="text-xs text-destructive">
-                    {errors.email.message}
+                    {errors.identifier.message}
                   </p>
                 )}
               </div>
@@ -151,10 +174,15 @@ export default function LoginPage() {
               </div>
 
               {/* Submit */}
+              {serverError && (
+                <p className="text-xs text-destructive">{serverError}</p>
+              )}
+
               <Button
                 type="submit"
                 size="lg"
                 className="mt-1 w-full justify-center"
+                disabled={isSubmitting}
               >
                 Logg inn
                 <ArrowRight className="ml-2 h-4 w-4" />

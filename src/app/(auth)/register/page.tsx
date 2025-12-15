@@ -1,16 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 
 import { registerSchema, type RegisterValues } from "@/lib/validation/auth";
-import {
-  fadeIn,
-  scaleIn,
-  staggerContainer,
-} from "@/lib/animations/presets";
+import { fadeIn, scaleIn, staggerContainer } from "@/lib/animations/presets";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,9 +22,20 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
-import { User2, Mail, LockKeyhole, ArrowRight, Sparkles } from "lucide-react";
+import {
+  User2,
+  Mail,
+  LockKeyhole,
+  ArrowRight,
+  Sparkles,
+  Phone,
+} from "lucide-react";
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -34,15 +44,57 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       name: "",
+      phone: "",
       email: "",
       password: "",
       confirmPassword: "",
     },
   });
 
-  // Placeholder submit handler – replace with real registration later
-  const onSubmit = (values: RegisterValues) => {
-    console.log("Register submit (stub):", values);
+  const onSubmit = async (values: RegisterValues) => {
+    setServerError(null);
+    setIsSubmitting(true);
+
+    try {
+          const res = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: values.name,
+              phone: values.phone || undefined,
+              email: values.email,
+              password: values.password,
+            }),
+          });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setServerError(data?.message ?? "Kunne ikke registrere bruker.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Auto sign-in after successful registration
+      const signInResult = await signIn("credentials", {
+        email: values.email,
+        password: values.password,
+        redirect: false,
+        callbackUrl: "/min-side",
+      });
+
+      setIsSubmitting(false);
+
+      if (signInResult?.error) {
+        router.push("/login");
+        return;
+      }
+
+      router.push(signInResult?.url ?? "/min-side");
+      router.refresh();
+    } catch (error) {
+      setIsSubmitting(false);
+      setServerError("Uventet feil. Prøv igjen.");
+    }
   };
 
   return (
@@ -66,7 +118,7 @@ export default function RegisterPage() {
         className="relative overflow-hidden rounded-[1.7rem] p-[2px]"
         variants={scaleIn(0.02)}
       >
-        {/* Анімований градієнтний бордер */}
+        {/* Анімований градієнтний бордер (лише фон) */}
         <motion.div
           aria-hidden
           className="pointer-events-none absolute inset-0 rounded-[1.7rem] bg-[conic-gradient(from_0deg,#22E4FF,#5B5BFF,#F044FF,#22E4FF)] opacity-85 blur-[6px]"
@@ -111,6 +163,33 @@ export default function RegisterPage() {
                 {errors.name && (
                   <p className="text-xs text-destructive">
                     {errors.name.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Telefon (valgfritt) */}
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="phone"
+                  className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground"
+                >
+                  Telefon
+                </label>
+                <div className="relative">
+                  <Phone className="pointer-events-none absolute left-2 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-foreground/80" />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    placeholder="+47 900 00 000"
+                    className="pl-8"
+                    aria-invalid={!!errors.phone}
+                    {...register("phone")}
+                  />
+                </div>
+                {errors.phone && (
+                  <p className="text-xs text-destructive">
+                    {errors.phone.message}
                   </p>
                 )}
               </div>
@@ -196,18 +275,17 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              {/* Terms / info */}
-              <p className="text-[11px] text-muted-foreground md:text-xs">
-                Ved å opprette konto samtykker du til at HamarTech kan lagre
-                nødvendig informasjon om dine reservasjoner. Du kan slette
-                kontoen din senere.
-              </p>
+              {/* Errors */}
+              {serverError && (
+                <p className="text-xs text-destructive">{serverError}</p>
+              )}
 
               {/* Submit */}
               <Button
                 type="submit"
                 size="lg"
                 className="mt-1 w-full justify-center"
+                disabled={isSubmitting}
               >
                 Opprett konto
                 <ArrowRight className="ml-2 h-4 w-4" />

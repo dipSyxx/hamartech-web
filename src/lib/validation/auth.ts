@@ -4,10 +4,10 @@ import { z } from "zod";
  * Login schema
  */
 export const loginSchema = z.object({
-  email: z
+  identifier: z
     .string()
-    .min(1, "E-post er påkrevd")
-    .email("Ugyldig e-postadresse"),
+    .trim()
+    .min(3, "E-post eller telefon er påkrevd"),
   password: z.string().min(6, "Passord må ha minst 6 tegn"),
 });
 
@@ -22,6 +22,11 @@ export const registerSchema = z
       .string()
       .min(2, "Navn må ha minst 2 tegn")
       .max(80, "Navn kan ikke være lenger enn 80 tegn"),
+    phone: z
+      .string()
+      .trim()
+      .min(4, "Telefonnummer er for kort")
+      .max(30, "Telefonnummer er for langt"),
     email: z
       .string()
       .min(1, "E-post er påkrevd")
