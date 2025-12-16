@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
@@ -25,6 +25,22 @@ import { Input } from "@/components/ui/input";
 import { Mail, LockKeyhole, ArrowRight, Sparkles } from "lucide-react";
 
 export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex w-full max-w-md flex-col gap-4 rounded-2xl bg-background/60 p-6 text-center shadow">
+          <p className="text-sm text-muted-foreground">
+            Laster innloggingssiden...
+          </p>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/min-side";
