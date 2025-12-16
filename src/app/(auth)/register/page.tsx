@@ -28,7 +28,11 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 
 import {
   User2,
@@ -191,13 +195,12 @@ export default function RegisterPage() {
         initial="hidden"
         animate="visible"
       >
-        {/* ÑoÑøÑ¯ÑæÑ«¥OÑ§Ñ÷Ñû Ñ«ÑøÑïÑ¨Ñ÷¥? / Ñ§ÑóÑ«¥'ÑæÑ§¥?¥' */}
         <motion.div
           className="mb-4 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground"
           variants={fadeIn(0)}
         >
           <Sparkles className="h-4 w-4 text-primary" />
-          <span>HamarTech ¶ú Festivaluke</span>
+          <span>HamarTech Festivaluke</span>
         </motion.div>
 
         {/* Gradient frame + card */}
@@ -205,7 +208,6 @@ export default function RegisterPage() {
           className="relative overflow-hidden rounded-[1.7rem] p-[2px]"
           variants={scaleIn(0.02)}
         >
-          {/* Ñ?Ñ«¥-Ñ¬ÑóÑýÑøÑ«Ñ÷Ñû Ñü¥?ÑøÑï¥-¥"Ñ«¥'Ñ«Ñ÷Ñû ÑñÑó¥?ÑïÑæ¥? (Ñ¯Ñ÷¥^Ñæ ¥"ÑóÑ«) */}
           <motion.div
             aria-hidden
             className="pointer-events-none absolute inset-0 rounded-[1.7rem] bg-[conic-gradient(from_0deg,#22E4FF,#5B5BFF,#F044FF,#22E4FF)] opacity-85 blur-[6px]"
@@ -254,7 +256,7 @@ export default function RegisterPage() {
                   )}
                 </div>
 
-                {/* Telefon (valgfritt) */}
+                {/* Telefon */}
                 <div className="space-y-1.5">
                   <label
                     htmlFor="phone"
@@ -412,7 +414,7 @@ export default function RegisterPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 space-y-3 mb-4">
             <InputOTP
               maxLength={6}
               value={codeValue}
@@ -444,6 +446,7 @@ export default function RegisterPage() {
             <Button
               onClick={handleVerifyCode}
               disabled={codeValue.trim().length !== 6 || isVerifyingCode}
+              className="border-0"
             >
               {isVerifyingCode ? "Verifiserer..." : "Bekreft kode"}
             </Button>
