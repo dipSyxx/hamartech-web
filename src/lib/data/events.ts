@@ -11,6 +11,10 @@ export type EventItem = {
   weekday: string;
   date: string;
   time: string;
+
+  startsAt: string; // ISO 8601 string with offset
+  endsAt: string; // ISO 8601 string with offset
+
   trackId: TrackId;
   venue: string;
   venueId: VenueId;
@@ -20,7 +24,75 @@ export type EventItem = {
   requiresRegistration: boolean;
 };
 
-export const EVENTS: EventItem[] = [
+/**
+ * We currently display "Uke 42" in UI. For real DateTime fields we need a real calendar date.
+ * Assumption: Festival runs in ISO week 42 of FESTIVAL_YEAR.
+ * Week 42 in 2025 is Oct 13–19.
+ */
+const FESTIVAL_YEAR = 2025;
+const FESTIVAL_ISO_WEEK = 42;
+
+// Week 42 in Norway is still daylight saving time (typically +02:00).
+// If you want to be 100% correct for other weeks/years, handle tz via date-fns-tz later.
+const FESTIVAL_TZ_OFFSET = "+02:00";
+
+const ISO_WEEKDAY_BY_DAY: Record<DayId, number> = {
+  day1: 1, // Monday
+  day2: 2,
+  day3: 3,
+  day4: 4,
+  day5: 5,
+  day6: 6,
+  day7: 7, // Sunday
+};
+
+function isoWeekToDate(year: number, week: number, weekday: number): string {
+  // ISO week algorithm: Monday=1..Sunday=7
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const jan4IsoDay = jan4.getUTCDay() === 0 ? 7 : jan4.getUTCDay(); // 1..7
+  const mondayWeek1 = new Date(jan4);
+  mondayWeek1.setUTCDate(jan4.getUTCDate() - (jan4IsoDay - 1));
+
+  const target = new Date(mondayWeek1);
+  target.setUTCDate(mondayWeek1.getUTCDate() + (week - 1) * 7 + (weekday - 1));
+
+  return target.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+function dateForDayId(dayId: DayId): string {
+  const weekday = ISO_WEEKDAY_BY_DAY[dayId];
+  return isoWeekToDate(FESTIVAL_YEAR, FESTIVAL_ISO_WEEK, weekday);
+}
+
+function parseTimeRange(time: string): { startHHMM: string; endHHMM: string } {
+  // Supports "18:00–21:00" (en dash) and "18:00-21:00"
+  const m = time.match(/(\d{1,2}:\d{2})\s*[–-]\s*(\d{1,2}:\d{2})/);
+  if (!m) {
+    throw new Error(`Invalid time range format: "${time}"`);
+  }
+  const [, startHHMM, endHHMM] = m;
+  return { startHHMM, endHHMM };
+}
+
+function toDateTime(dayId: DayId, hhmm: string): string {
+  const date = dateForDayId(dayId);
+  return `${date}T${hhmm}:00${FESTIVAL_TZ_OFFSET}`;
+}
+
+function toRange(
+  dayId: DayId,
+  time: string
+): Pick<EventItem, "startsAt" | "endsAt"> {
+  const { startHHMM, endHHMM } = parseTimeRange(time);
+  return {
+    startsAt: toDateTime(dayId, startHHMM),
+    endsAt: toDateTime(dayId, endHHMM),
+  };
+}
+
+type RawEvent = Omit<EventItem, "startsAt" | "endsAt">;
+
+const RAW_EVENTS: RawEvent[] = [
   // DAG 1 – CREATIVE / MEDIA ARTS
   {
     id: "day1-opening",
@@ -301,3 +373,8 @@ export const EVENTS: EventItem[] = [
     requiresRegistration: true,
   },
 ];
+
+export const EVENTS: EventItem[] = RAW_EVENTS.map((event) => ({
+  ...event,
+  ...toRange(event.dayId, event.time),
+}));
