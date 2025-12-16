@@ -44,6 +44,7 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/min-side";
+  const successMessage = searchParams.get("message");
 
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -123,6 +124,11 @@ function LoginContent() {
           </CardHeader>
 
           <CardContent className="pt-2">
+            {successMessage && (
+              <div className="mb-4 rounded-xl border border-emerald-500/50 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-50 md:text-sm">
+                {successMessage}
+              </div>
+            )}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* E-post eller telefon */}
               <div className="space-y-1.5">

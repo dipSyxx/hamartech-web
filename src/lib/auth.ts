@@ -33,6 +33,7 @@ export const authOptions: NextAuthOptions = {
 
         const user = await prisma.user.findUnique({ where });
         if (!user || !user.passwordHash) return null;
+        if (!user.emailVerifiedAt) return null;
 
         const isValid = await compare(password, user.passwordHash);
         if (!isValid) return null;
