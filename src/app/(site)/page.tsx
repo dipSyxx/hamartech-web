@@ -76,7 +76,6 @@ export default function Home() {
 
   return (
     <div className="relative overflow-hidden">
-      {/* Глобальні градієнтові blur-кружки */}
       <BackgroundGlows />
 
       {/* HERO */}
