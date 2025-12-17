@@ -7,6 +7,7 @@ import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
+import { useUserStore } from "@/lib/stores/user-store";
 
 import { loginSchema, type LoginValues } from "@/lib/validation/auth";
 import { fadeIn, scaleIn, staggerContainer } from "@/lib/animations/presets";
@@ -45,6 +46,7 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/min-side";
   const successMessage = searchParams.get("message");
+  const { clearUser } = useUserStore();
 
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -83,7 +85,8 @@ function LoginContent() {
       return;
     }
 
-    router.push(result?.url ?? callbackUrl);
+    clearUser();
+    router.push(result?.url ?? callbackUrl ?? "/");
     router.refresh();
   };
 

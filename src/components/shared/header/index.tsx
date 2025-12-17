@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, type Variants } from "framer-motion";
-import { useSession } from "next-auth/react";
+import { useEffect } from "react";
+import { useUserStore } from "@/lib/stores/user-store";
 
 const headerVariants: Variants = {
   hidden: { opacity: 0, y: -12 },
@@ -45,8 +46,15 @@ const ctaVariants: Variants = {
 };
 
 export function Header() {
-  const { data: session } = useSession();
-  const isAuthed = !!session?.user;
+  const { user, fetchUser, hasFetched, loading } = useUserStore();
+
+  useEffect(() => {
+    if (!hasFetched && !loading) {
+      fetchUser();
+    }
+  }, [fetchUser, hasFetched, loading]);
+
+  const isAuthed = !!user;
 
   return (
     <motion.header

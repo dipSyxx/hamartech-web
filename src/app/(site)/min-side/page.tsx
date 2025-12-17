@@ -23,8 +23,9 @@ import { Input } from "@/components/ui/input";
 import { BackgroundGlows } from "@/components/shared/background-glows";
 import { cn } from "@/lib/utils";
 import { redirect } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { Spinner } from "@/components/ui/spinner";
+import { useUserStore } from "@/lib/stores/user-store";
 
 import {
   CalendarDays,
@@ -52,7 +53,7 @@ type ReservationWithEvent = Reservation & {
   event: EventItem;
 };
 
-type SessionUser = {
+type UserProfile = {
   name?: string | null;
   email?: string | null;
   phone?: string | null;
@@ -83,24 +84,30 @@ const STATUS_META: Record<
 };
 
 export default function MyPage() {
-  const { data: session, status } = useSession();
-  const user = session?.user as SessionUser | undefined;
+  const { user, loading, hasFetched, fetchUser, clearUser } = useUserStore();
   const [saveMessage, setSaveMessage] = React.useState<string | null>(null);
   const handleProfileSave = (values: ProfileFormValues) => {
     setSaveMessage("Profilen er oppdatert lokalt.");
   };
 
   const handleSignOut = async () => {
+    clearUser();
     await signOut({ callbackUrl: "/" });
   };
 
   React.useEffect(() => {
-    if (status === "unauthenticated") {
+    if (!hasFetched && !loading) {
+      fetchUser();
+    }
+  }, [fetchUser, hasFetched, loading]);
+
+  React.useEffect(() => {
+    if (hasFetched && !loading && !user) {
       redirect("/login?callbackUrl=/min-side");
     }
-  }, [status]);
+  }, [hasFetched, loading, user]);
 
-  if (status === "loading") {
+  if (loading || !hasFetched) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Spinner />
@@ -500,7 +507,7 @@ function ProfileForm({
   onSave,
   saveMessage,
 }: {
-  user: SessionUser | null;
+  user: UserProfile | null;
   onSave: (values: ProfileFormValues) => void;
   saveMessage: string | null;
 }) {
