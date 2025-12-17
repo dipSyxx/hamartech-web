@@ -69,7 +69,7 @@ export function IntroGate({
             {/* Layer 1: conic wash (rotating) */}
             <motion.div
               aria-hidden
-              className="pointer-events-none absolute -inset-[35%] opacity-70 blur-2xl"
+              className="pointer-events-none absolute -inset-[70%] opacity-70 blur-2xl"
               style={{
                 background:
                   "conic-gradient(from 0deg, rgba(34,228,255,.85), rgba(91,91,255,.85), rgba(240,68,255,.85), rgba(34,228,255,.85))",
