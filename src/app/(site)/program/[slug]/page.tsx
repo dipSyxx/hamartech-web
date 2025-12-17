@@ -35,9 +35,65 @@ import {
 } from "lucide-react";
 import { useParams } from "next/navigation";
 
-import { VENUES } from "@/lib/data/venues";
 import { TRACK_META } from "@/lib/data/program-meta";
-import { EVENTS } from "@/lib/data/events";
+import { Spinner } from "@/components/ui/spinner";
+
+type ApiVenue = {
+  id: string;
+  label: string;
+  name: string;
+  address: string | null;
+  city: string | null;
+  mapQuery: string | null;
+  googleMapsUrl: string | null;
+  openStreetMapUrl: string | null;
+};
+
+type ProgramEvent = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  dayId: string;
+  dayLabel: string;
+  weekday: string;
+  date: string;
+  time: string;
+  trackId: string;
+  venueId: string;
+  venue: string;
+  venueInfo: ApiVenue | null;
+  targetGroup: string;
+  host: string;
+  isFree: boolean;
+  requiresRegistration: boolean;
+  startsAt?: string | null;
+  endsAt?: string | null;
+};
+
+function mapApiEvent(event: any): ProgramEvent {
+  return {
+    id: event.id,
+    slug: event.slug,
+    title: event.title,
+    description: event.description,
+    dayId: event.dayId,
+    dayLabel: event.dayLabel,
+    weekday: event.weekday,
+    date: event.dateLabel ?? event.date ?? "",
+    time: event.timeLabel ?? event.time ?? "",
+    trackId: event.trackId,
+    venueId: event.venueId,
+    venue: event.venueLabel ?? event.venue?.label ?? "",
+    venueInfo: event.venue ?? null,
+    targetGroup: event.targetGroup,
+    host: event.host,
+    isFree: Boolean(event.isFree),
+    requiresRegistration: Boolean(event.requiresRegistration),
+    startsAt: event.startsAt ?? null,
+    endsAt: event.endsAt ?? null,
+  };
+}
 
 export default function ProgramEvent() {
   const params = useParams<{ slug?: string | string[] }>();
@@ -46,18 +102,116 @@ export default function ProgramEvent() {
     return Array.isArray(value) ? value[0] : value ?? "";
   }, [params]);
 
-  const event = React.useMemo(
-    () => EVENTS.find((item) => item.slug === slug),
-    [slug]
-  );
-  const venue = event ? VENUES[event.venueId] : null;
+  const [event, setEvent] = React.useState<ProgramEvent | null>(null);
+  const [allEvents, setAllEvents] = React.useState<ProgramEvent[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      if (!slug) {
+        setEvent(null);
+        setAllEvents([]);
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      setError(null);
+      try {
+        const [eventRes, listRes] = await Promise.all([
+          fetch(`/api/events/${slug}`),
+          fetch("/api/events"),
+        ]);
+
+        const eventJson = await eventRes.json();
+        if (!eventRes.ok) {
+          throw new Error(eventJson?.error || "Fant ikke arrangementet.");
+        }
+
+        const current = mapApiEvent(eventJson.event);
+        let mappedList: ProgramEvent[] = [];
+
+        if (listRes.ok) {
+          const listJson = await listRes.json();
+          mappedList =
+            listJson?.events?.map((item: any) => mapApiEvent(item)) ?? [];
+        }
+
+        if (!cancelled) {
+          setEvent(current);
+          setAllEvents(mappedList.filter((item) => item.id !== current.id));
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          setError(err?.message ?? "Kunne ikke hente arrangementet.");
+          setEvent(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
+  const venue = event?.venueInfo;
   const mapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const mapEmbedSrc =
     venue && mapsApiKey
       ? `https://www.google.com/maps/embed/v1/search?key=${mapsApiKey}&q=${encodeURIComponent(
-          venue.mapQuery
+          venue.mapQuery ?? venue.label ?? event?.venue ?? ""
         )}`
       : null;
+
+  if (loading) {
+    return (
+      <div className="relative overflow-hidden">
+        <BackgroundGlows />
+        <div className="flex min-h-[60vh] items-center justify-center px-4 py-10">
+          <Spinner className="h-8 w-8 text-primary" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="relative overflow-hidden">
+        <BackgroundGlows />
+        <section className="border-b border-border bg-background">
+          <div className="mx-auto flex min-h-[60vh] max-w-3xl flex-col justify-center gap-6 px-4 py-16 md:px-8 text-center">
+            <div className="space-y-3">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                Kunne ikke hente arrangementet
+              </p>
+              <h1 className="text-2xl font-semibold md:text-3xl">Noe gikk galt</h1>
+              <p className="text-sm text-muted-foreground md:text-base">{error}</p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Button asChild variant="outline" size="sm">
+                <Link href="/program">
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Tilbake til programmet
+                </Link>
+              </Button>
+              <Button size="sm" onClick={() => window.location.reload()}>
+                Prøv igjen
+              </Button>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   if (!event) {
     return (
@@ -90,18 +244,27 @@ export default function ProgramEvent() {
     );
   }
 
-  const track = TRACK_META[event.trackId as keyof typeof TRACK_META];
-  const TrackIcon = track.icon;
+  const trackMeta =
+    TRACK_META[event.trackId as keyof typeof TRACK_META] ?? null;
+  const track =
+    trackMeta ??
+    ({
+      label: event.trackId,
+      shortLabel: event.trackId,
+      badgeClass: "",
+      icon: CalendarDays,
+    } as const);
+  const TrackIcon = track.icon ?? CalendarDays;
 
-  const sameDayEvents = EVENTS.filter(
+  const sameDayEvents = allEvents.filter(
     (item) => item.dayId === event.dayId && item.id !== event.id
   );
-  const sameTrackEvents = EVENTS.filter(
-    (item) =>
-      item.trackId === event.trackId &&
-      item.id !== event.id &&
-      item.dayId !== event.dayId
-  ).slice(0, 3);
+  const sameTrackEvents = allEvents
+    .filter(
+      (item) =>
+        item.trackId === event.trackId && item.id !== event.id && item.dayId !== event.dayId
+    )
+    .slice(0, 3);
 
   return (
     <div className="relative overflow-hidden">
@@ -258,12 +421,18 @@ export default function ProgramEvent() {
                     )}
                   </div>
 
-                  <Button asChild size="sm" className="text-xs">
-                    <Link href="/program">
-                      Se hele programmet
-                      <CalendarDays className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
+                  {event.requiresRegistration ? (
+                    <Button asChild size="sm" className="text-xs">
+                      <Link href={`/checkout/${event.slug}`}>
+                        Bestille
+                        <CalendarDays className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">
+                      Ingen reservasjon nødvendig.
+                    </span>
+                  )}
                 </CardFooter>
               </Card>
 
@@ -288,7 +457,7 @@ export default function ProgramEvent() {
                   <div className="flex flex-wrap gap-2 text-xs">
                     <Button asChild variant="outline" size="sm">
                       <a
-                        href={venue.googleMapsUrl}
+                        href={venue.googleMapsUrl ?? undefined}
                         target="_blank"
                         rel="noreferrer"
                       >
@@ -297,7 +466,7 @@ export default function ProgramEvent() {
                     </Button>
                     <Button asChild variant="ghost" size="sm">
                       <a
-                        href={venue.openStreetMapUrl}
+                        href={venue.openStreetMapUrl ?? undefined}
                         target="_blank"
                         rel="noreferrer"
                       >
@@ -443,13 +612,21 @@ function DetailRow({ icon: Icon, label, value, compact }: DetailRowProps) {
 }
 
 type RelatedEventCardProps = {
-  // тип виводиться з EVENTS, щоб не дублювати EventItem
-  event: (typeof EVENTS)[number];
+  event: ProgramEvent;
 };
 
 function RelatedEventCard({ event }: RelatedEventCardProps) {
-  const track = TRACK_META[event.trackId as keyof typeof TRACK_META];
-  const TrackIcon = track.icon;
+  const trackMeta =
+    TRACK_META[event.trackId as keyof typeof TRACK_META] ?? null;
+  const track =
+    trackMeta ??
+    ({
+      label: event.trackId,
+      shortLabel: event.trackId,
+      badgeClass: "",
+      icon: CalendarDays,
+    } as const);
+  const TrackIcon = track.icon ?? CalendarDays;
 
   return (
     <Card className="border-border/70 bg-background/70 shadow-[0_10px_30px_rgba(0,0,0,0.55)] transition-[border-color,background-color,box-shadow] duration-150 hover:border-primary/70 hover:bg-background/90 hover:shadow-[0_16px_45px_rgba(0,0,0,0.7)]">

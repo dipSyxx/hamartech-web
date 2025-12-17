@@ -8,7 +8,9 @@ function isProtectedPath(pathname: string) {
     pathname === "/reservations" ||
     pathname.startsWith("/reservations/") ||
     pathname === "/checkout" ||
-    pathname.startsWith("/checkout/")
+    pathname.startsWith("/checkout/") ||
+    pathname === "/approver" ||
+    pathname.startsWith("/approver/")
   );
 }
 
@@ -23,7 +25,14 @@ export async function middleware(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-  if (token) return NextResponse.next();
+  if (pathname.startsWith("/approver")) {
+    const role = (token as any)?.role;
+    if (token && (role === "ADMIN" || role === "APPROVER")) {
+      return NextResponse.next();
+    }
+  } else if (token) {
+    return NextResponse.next();
+  }
 
   const url = req.nextUrl.clone();
   url.pathname = "/login";

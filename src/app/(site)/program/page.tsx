@@ -22,16 +22,15 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Spinner } from "@/components/ui/spinner";
 
 import { cn } from "@/lib/utils";
-import { VENUES } from "@/lib/data/venues";
 import {
   TRACK_META,
   DAY_OPTIONS,
   type TrackId,
   type DayId,
 } from "@/lib/data/program-meta";
-import { EVENTS, type EventItem } from "@/lib/data/events";
 import {
   Search,
   MapPin,
@@ -42,6 +41,63 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { BackgroundGlows } from "@/components/shared/background-glows";
+
+type ApiVenue = {
+  id: string;
+  label: string;
+  name: string;
+  address: string | null;
+  city: string | null;
+  mapQuery: string | null;
+  googleMapsUrl: string | null;
+  openStreetMapUrl: string | null;
+};
+
+type ProgramEvent = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  dayId: DayId;
+  dayLabel: string;
+  weekday: string;
+  date: string;
+  time: string;
+  trackId: TrackId;
+  venueId: string;
+  venue: string;
+  venueInfo: ApiVenue | null;
+  targetGroup: string;
+  host: string;
+  isFree: boolean;
+  requiresRegistration: boolean;
+  startsAt?: string | null;
+  endsAt?: string | null;
+};
+
+function mapApiEvent(event: any): ProgramEvent {
+  return {
+    id: event.id,
+    slug: event.slug,
+    title: event.title,
+    description: event.description,
+    dayId: event.dayId as DayId,
+    dayLabel: event.dayLabel,
+    weekday: event.weekday,
+    date: event.dateLabel ?? event.date ?? "",
+    time: event.timeLabel ?? event.time ?? "",
+    trackId: event.trackId as TrackId,
+    venueId: event.venueId,
+    venue: event.venueLabel ?? event.venue?.label ?? "",
+    venueInfo: event.venue ?? null,
+    targetGroup: event.targetGroup,
+    host: event.host,
+    isFree: Boolean(event.isFree),
+    requiresRegistration: Boolean(event.requiresRegistration),
+    startsAt: event.startsAt ?? null,
+    endsAt: event.endsAt ?? null,
+  };
+}
 
 const DAY_ORDER = DAY_OPTIONS.reduce((acc, option, index) => {
   if (option.id !== "all") {
@@ -80,6 +136,32 @@ export default function Program() {
   const [activeTrack, setActiveTrack] = React.useState<TrackId | "all">("all");
   const [activeDay, setActiveDay] = React.useState<DayId | "all">("all");
   const [search, setSearch] = React.useState("");
+  const [events, setEvents] = React.useState<ProgramEvent[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const fetchEvents = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/events");
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || "Kunne ikke hente arrangementer.");
+      }
+      const mapped: ProgramEvent[] =
+        data?.events?.map((event: any) => mapApiEvent(event)) ?? [];
+      setEvents(mapped);
+    } catch (err: any) {
+      setError(err?.message ?? "Kunne ikke hente arrangementer.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   const normalizedSearch = normalizeText(search);
   const searchTerms = React.useMemo(
@@ -91,25 +173,25 @@ export default function Program() {
   const filteredEvents = React.useMemo(() => {
     const terms = searchTerms;
 
-    const filtered = EVENTS.filter((event) => {
+    const filtered = events.filter((event) => {
       if (activeTrack !== "all" && event.trackId !== activeTrack) return false;
       if (activeDay !== "all" && event.dayId !== activeDay) return false;
 
       if (terms.length === 0) return true;
 
       const track = TRACK_META[event.trackId];
-      const venue = VENUES[event.venueId];
+      const venue = event.venueInfo;
 
       const searchable = normalizeText(
         [
           event.title,
           event.description,
           event.venue,
-          venue.label,
-          venue.name,
-          venue.address ?? "",
-          venue.city,
-          venue.mapQuery,
+          venue?.label ?? "",
+          venue?.name ?? "",
+          venue?.address ?? "",
+          venue?.city ?? "",
+          venue?.mapQuery ?? "",
           event.venueId,
           event.targetGroup,
           event.host,
@@ -117,8 +199,8 @@ export default function Program() {
           event.date,
           event.time,
           event.dayLabel,
-          track.label,
-          track.shortLabel,
+          track?.label ?? "",
+          track?.shortLabel ?? "",
           event.slug,
           event.isFree ? "gratis free billettfri" : "billetter ticket betalt",
           event.requiresRegistration
@@ -139,10 +221,10 @@ export default function Program() {
 
       return a.title.localeCompare(b.title);
     });
-  }, [activeTrack, activeDay, searchTerms]);
+  }, [activeTrack, activeDay, searchTerms, events]);
 
   const eventsByDay = React.useMemo(() => {
-    const grouped: Record<DayId, EventItem[]> = {
+    const grouped: Record<DayId, ProgramEvent[]> = {
       day1: [],
       day2: [],
       day3: [],
@@ -167,13 +249,38 @@ export default function Program() {
     [eventsByDay]
   );
 
-  const resultListKey = `${activeTrack}-${activeDay}-${
+  const resultListKey = `${activeTrack}-${activeDay}-${ 
     searchTerms.length ? searchTerms.join("-") : "all"
   }`;
 
-  const totalEvents = EVENTS.length;
+  const totalEvents = events.length;
   const totalTracks = Object.keys(TRACK_META).length;
   const totalDays = 7;
+
+  if (loading) {
+    return (
+      <div className="relative overflow-hidden">
+        <BackgroundGlows />
+        <div className="flex min-h-[60vh] items-center justify-center px-4 py-10">
+          <Spinner className="h-8 w-8 text-primary" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="relative overflow-hidden">
+        <BackgroundGlows />
+        <div className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center gap-4 px-4 py-10 text-center">
+          <p className="text-sm text-muted-foreground">{error}</p>
+          <Button onClick={fetchEvents} variant="outline" size="sm">
+            Prøv igjen
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative overflow-hidden">
@@ -397,7 +504,7 @@ export default function Program() {
   );
 }
 
-function EventCard({ event }: { event: EventItem }) {
+function EventCard({ event }: { event: ProgramEvent }) {
   const track = TRACK_META[event.trackId];
   const TrackIcon = track.icon;
 

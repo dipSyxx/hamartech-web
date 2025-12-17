@@ -44,7 +44,12 @@ export const authOptions: NextAuthOptions = {
           throw new Error("INVALID_CREDENTIALS");
         }
 
-        return { id: user.id, email: user.email, name: user.name ?? undefined };
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name ?? undefined,
+          role: user.role,
+        };
       },
     }),
   ],
@@ -52,12 +57,14 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.uid = (user as any).id;
+        (token as any).role = (user as any).role;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).id = token.uid;
+        (session.user as any).role = (token as any).role;
       }
       return session;
     },
