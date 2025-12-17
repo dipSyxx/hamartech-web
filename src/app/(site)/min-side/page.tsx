@@ -1,16 +1,11 @@
-// app/min-side/page.tsx
 "use client";
 
 import * as React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useForm } from "react-hook-form";
 
-import {
-  fadeIn,
-  fadeInUp,
-  scaleIn,
-  staggerContainer,
-} from "@/lib/animations/presets";
+import { fadeIn, fadeInUp, staggerContainer } from "@/lib/animations/presets";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,17 +18,18 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 
 import { BackgroundGlows } from "@/components/shared/background-glows";
 import { cn } from "@/lib/utils";
-import { useUserStore } from "@/lib/stores/user-store";
 import { redirect } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
+import { Spinner } from "@/components/ui/spinner";
 
 import {
   CalendarDays,
   Clock3,
   MapPin,
-  Users,
   Ticket,
   User2,
   Mail,
@@ -54,6 +50,12 @@ type EventItem = (typeof EVENTS)[number];
 
 type ReservationWithEvent = Reservation & {
   event: EventItem;
+};
+
+type SessionUser = {
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
 };
 
 const STATUS_META: Record<
@@ -80,19 +82,31 @@ const STATUS_META: Record<
   },
 };
 
-const MOCK_USER = {
-  name: "Festivalgjest",
-  email: "festival.gjest@example.com",
-};
-
 export default function MyPage() {
-  const { user, loading, hasFetched } = useUserStore();
+  const { data: session, status } = useSession();
+  const user = session?.user as SessionUser | undefined;
+  const [saveMessage, setSaveMessage] = React.useState<string | null>(null);
+  const handleProfileSave = (values: ProfileFormValues) => {
+    setSaveMessage("Profilen er oppdatert lokalt.");
+  };
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: "/" });
+  };
 
   React.useEffect(() => {
-    if (hasFetched && !loading && user === null) {
+    if (status === "unauthenticated") {
       redirect("/login?callbackUrl=/min-side");
     }
-  }, [hasFetched, loading, user]);
+  }, [status]);
+
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Spinner />
+      </div>
+    );
+  }
 
   const reservationsWithEvent = React.useMemo<ReservationWithEvent[]>(() => {
     return RESERVATIONS.reduce<ReservationWithEvent[]>((acc, reservation) => {
@@ -154,22 +168,45 @@ export default function MyPage() {
               <p className="mb-1 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
                 Innlogget som
               </p>
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[radial-gradient(circle_at_top,#22E4FF44,transparent_55%),radial-gradient(circle_at_bottom,#F044FF44,transparent_55%)] text-sm font-semibold text-foreground shadow-[0_10px_24px_rgba(0,0,0,0.6)]">
-                  {(user?.name ?? user?.email ?? "U").charAt(0)}
-                </div>
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-1 text-xs font-medium text-foreground md:text-sm">
-                    <User2 className="h-3.5 w-3.5 text-primary" />
-                    <span>{user?.name ?? "Ukjent bruker"}</span>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[radial-gradient(circle_at_top,#22E4FF44,transparent_55%),radial-gradient(circle_at_bottom,#F044FF44,transparent_55%)] text-sm font-semibold text-foreground shadow-[0_10px_24px_rgba(0,0,0,0.6)]">
+                    {(user?.name ?? user?.email ?? "U").charAt(0)}
                   </div>
-                  <div className="flex items-center gap-1 text-[11px] text-muted-foreground md:text-xs">
-                    <Mail className="h-3.5 w-3.5" />
-                    <span>{user?.email ?? "ukjent@bruker.no"}</span>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1 text-xs font-medium text-foreground md:text-sm">
+                      <User2 className="h-3.5 w-3.5 text-primary" />
+                      <span>{user?.name ?? "Ukjent bruker"}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground md:text-xs">
+                      <Mail className="h-3.5 w-3.5" />
+                      <span>{user?.email ?? "ukjent@bruker.no"}</span>
+                    </div>
                   </div>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-border/70"
+                  onClick={handleSignOut}
+                >
+                  Logg ut
+                </Button>
               </div>
             </motion.div>
+          </motion.div>
+
+          <motion.div
+            className="mt-6"
+            variants={fadeInUp(0.04)}
+            initial="hidden"
+            animate="visible"
+          >
+            <ProfileForm
+              user={user ?? null}
+              onSave={handleProfileSave}
+              saveMessage={saveMessage}
+            />
           </motion.div>
 
           <motion.div
@@ -190,9 +227,9 @@ export default function MyPage() {
             />
             <SummaryCard
               label="Forskjellige spor"
-              value={new Set(reservationsWithEvent.map((r) => r.event.trackId))
-                .size
-                .toString()}
+              value={new Set(
+                reservationsWithEvent.map((r) => r.event.trackId)
+              ).size.toString()}
               icon={Ticket}
             />
           </motion.div>
@@ -273,7 +310,10 @@ export default function MyPage() {
                           damping: 22,
                         }}
                       >
-                        <ReservationCard item={reservation} isUpcoming={false} />
+                        <ReservationCard
+                          item={reservation}
+                          isUpcoming={false}
+                        />
                       </motion.div>
                     ))}
                   </div>
@@ -449,6 +489,110 @@ type EmptyStateProps = {
   description: string;
 };
 
+type ProfileFormValues = {
+  name: string;
+  phone: string;
+  email: string;
+};
+
+function ProfileForm({
+  user,
+  onSave,
+  saveMessage,
+}: {
+  user: SessionUser | null;
+  onSave: (values: ProfileFormValues) => void;
+  saveMessage: string | null;
+}) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<ProfileFormValues>({
+    defaultValues: {
+      name: user?.name ?? "",
+      phone: user?.phone ?? "",
+      email: user?.email ?? "",
+    },
+  });
+
+  React.useEffect(() => {
+    reset({
+      name: user?.name ?? "",
+      phone: user?.phone ?? "",
+      email: user?.email ?? "",
+    });
+  }, [reset, user?.email, user?.name, user?.phone]);
+
+  const onSubmit = (values: ProfileFormValues) => {
+    onSave(values);
+  };
+
+  return (
+    <Card className="border-border/70 bg-background/70 shadow-[0_12px_32px_rgba(0,0,0,0.6)]">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-xl font-semibold">Profil</CardTitle>
+        <CardDescription>
+          Oppdater navn og telefon. E-post kan ikke endres.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              Navn
+            </label>
+            <Input
+              type="text"
+              autoComplete="name"
+              {...register("name", { required: "Navn er påkrevd" })}
+              aria-invalid={!!errors.name}
+            />
+            {errors.name && (
+              <p className="text-xs text-destructive">{errors.name.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              Telefon
+            </label>
+            <Input
+              type="tel"
+              autoComplete="tel"
+              {...register("phone", {
+                minLength: { value: 4, message: "For kort nummer" },
+              })}
+              aria-invalid={!!errors.phone}
+            />
+            {errors.phone && (
+              <p className="text-xs text-destructive">{errors.phone.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              E-post
+            </label>
+            <Input type="email" disabled {...register("email")} />
+          </div>
+
+          {saveMessage && (
+            <p className="text-xs text-emerald-400">{saveMessage}</p>
+          )}
+
+          <div className="flex justify-end">
+            <Button type="submit" size="sm" disabled={isSubmitting || !user}>
+              {isSubmitting ? "Lagrer..." : "Lagre endringer"}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
 function EmptyState({ title, description }: EmptyStateProps) {
   return (
     <Card className="border-border/70 bg-background/70 shadow-[0_10px_30px_rgba(0,0,0,0.55)]">
@@ -460,7 +604,12 @@ function EmptyState({ title, description }: EmptyStateProps) {
           {description}
         </p>
         <div className="mt-4">
-          <Button asChild variant="outline" size="sm" className="border-border/70">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="border-border/70"
+          >
             <Link href="/program">
               Gå til programmet
               <CalendarDays className="ml-2 h-4 w-4" />

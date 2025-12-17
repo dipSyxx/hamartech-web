@@ -27,7 +27,6 @@ import {
 } from "@/lib/animations/presets";
 import { BackgroundGlows } from "@/components/shared/background-glows";
 import React from "react";
-import { useUserStore } from "@/lib/stores/user-store";
 
 const TRACKS = [
   {
@@ -66,14 +65,6 @@ const TRACKS = [
 ];
 
 export default function Home() {
-  const { fetchUser, loading, hasFetched } = useUserStore();
-
-  React.useEffect(() => {
-    if (!hasFetched && !loading) {
-      fetchUser();
-    }
-  }, [fetchUser, hasFetched, loading]);
-
   return (
     <div className="relative overflow-hidden">
       <BackgroundGlows />

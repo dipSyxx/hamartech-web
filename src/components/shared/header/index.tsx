@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, type Variants } from "framer-motion";
+import { useSession } from "next-auth/react";
 
 const headerVariants: Variants = {
   hidden: { opacity: 0, y: -12 },
@@ -44,6 +45,9 @@ const ctaVariants: Variants = {
 };
 
 export function Header() {
+  const { data: session } = useSession();
+  const isAuthed = !!session?.user;
+
   return (
     <motion.header
       className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur"
@@ -110,10 +114,26 @@ export function Header() {
 
         {/* CTA */}
         <motion.div className="flex items-center gap-2" variants={ctaVariants}>
-          <Button variant="outline" size="sm" className="hidden md:inline-flex">
-            Logg inn
-          </Button>
-          <Button size="sm" className="border-0px-4 md:px-5">
+          {isAuthed ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden md:inline-flex"
+              asChild
+            >
+              <Link href="/min-side">Min side</Link>
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden md:inline-flex"
+              asChild
+            >
+              <Link href="/login">Logg inn</Link>
+            </Button>
+          )}
+          <Button size="sm" className="border-0px-4 md:px-5" asChild>
             <Link href="/program">Se program</Link>
           </Button>
         </motion.div>
