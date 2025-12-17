@@ -75,18 +75,14 @@ export async function POST(req: Request) {
     const verifiedAt = new Date();
 
     await prisma.$transaction(async (tx) => {
-      await tx.emailVerificationCode.update({
-        where: { id: token.id },
-        data: { usedAt: verifiedAt },
-      });
-
       await tx.user.update({
         where: { id: user.id },
         data: { emailVerifiedAt: verifiedAt },
       });
 
+      // Cleanup all verification codes for this user (used and unused)
       await tx.emailVerificationCode.deleteMany({
-        where: { userId: user.id, usedAt: null },
+        where: { userId: user.id },
       });
     });
 
