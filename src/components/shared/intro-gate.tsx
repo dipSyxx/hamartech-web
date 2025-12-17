@@ -69,8 +69,10 @@ export function IntroGate({
             {/* Layer 1: conic wash (rotating) */}
             <motion.div
               aria-hidden
-              className="pointer-events-none absolute -inset-[70%] opacity-70 blur-2xl"
+              className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-50 blur-3xl"
               style={{
+                width: "260vmax",
+                height: "260vmax",
                 background:
                   "conic-gradient(from 0deg, rgba(34,228,255,.85), rgba(91,91,255,.85), rgba(240,68,255,.85), rgba(34,228,255,.85))",
               }}
@@ -78,7 +80,7 @@ export function IntroGate({
               transition={
                 reduceMotion
                   ? undefined
-                  : { duration: 5, repeat: Infinity, ease: "linear" }
+                  : { duration: 9, repeat: Infinity, ease: "linear" }
               }
             />
 
@@ -115,8 +117,7 @@ export function IntroGate({
               aria-hidden
               className="pointer-events-none absolute inset-0"
               style={{
-                background:
-                  "radial-gradient(1200px 700px at 50% 45%, rgba(0,0,0,.10), rgba(0,0,0,.72))",
+                background: "rgba(0,0,0,0.18)",
               }}
             />
 
@@ -170,9 +171,26 @@ export function IntroGate({
                 }
               />
 
-              <div
+              <motion.div
                 className="relative"
                 style={{ width: logoSizePx, height: logoSizePx }}
+                animate={
+                  reduceMotion
+                    ? undefined
+                    : {
+                        scale: [1, 1.04, 1],
+                        filter: [
+                          "brightness(1)",
+                          "brightness(1.08)",
+                          "brightness(1)",
+                        ],
+                      }
+                }
+                transition={
+                  reduceMotion
+                    ? undefined
+                    : { duration: 2.6, repeat: Infinity, ease: "easeInOut" }
+                }
               >
                 <Image
                   src={logoSrc}
@@ -185,7 +203,7 @@ export function IntroGate({
                     "drop-shadow-[0_28px_90px_rgba(0,0,0,0.65)]"
                   )}
                 />
-              </div>
+              </motion.div>
             </motion.div>
           </motion.div>
         )}
