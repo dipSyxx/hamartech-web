@@ -477,7 +477,7 @@ function EventCard({ event }: { event: EventItem }) {
           )}
         </div>
 
-        <Button asChild size="sm" className="text-xs">
+        <Button asChild size="sm" className="text-xs border-0">
           <Link href={`/program/${event.slug}`}>
             Se detaljer
             <Ticket className="ml-2 h-4 w-4" />

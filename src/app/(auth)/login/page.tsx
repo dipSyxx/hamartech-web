@@ -75,7 +75,11 @@ function LoginContent() {
     setIsSubmitting(false);
 
     if (result?.error) {
-      setServerError("Ugyldig e-post/telefon eller passord.");
+      const message =
+        result.error === "UNVERIFIED"
+          ? "Kontakten er ikke bekreftet. Sjekk e-posten din for verifisering."
+          : "Ugyldig e-post/telefon eller passord.";
+      setServerError(message);
       return;
     }
 

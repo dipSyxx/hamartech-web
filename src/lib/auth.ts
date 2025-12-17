@@ -32,11 +32,17 @@ export const authOptions: NextAuthOptions = {
         const where = isEmail ? { email: input } : { phone: input };
 
         const user = await prisma.user.findUnique({ where });
-        if (!user || !user.passwordHash) return null;
-        if (!user.emailVerifiedAt) return null;
+        if (!user || !user.passwordHash) {
+          throw new Error("INVALID_CREDENTIALS");
+        }
+        if (!user.emailVerifiedAt) {
+          throw new Error("UNVERIFIED");
+        }
 
         const isValid = await compare(password, user.passwordHash);
-        if (!isValid) return null;
+        if (!isValid) {
+          throw new Error("INVALID_CREDENTIALS");
+        }
 
         return { id: user.id, email: user.email, name: user.name ?? undefined };
       },

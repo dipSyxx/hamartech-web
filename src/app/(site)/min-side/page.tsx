@@ -26,6 +26,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import { BackgroundGlows } from "@/components/shared/background-glows";
 import { cn } from "@/lib/utils";
+import { useUserStore } from "@/lib/stores/user-store";
+import { redirect } from "next/navigation";
 
 import {
   CalendarDays,
@@ -84,6 +86,14 @@ const MOCK_USER = {
 };
 
 export default function MyPage() {
+  const { user, loading, hasFetched } = useUserStore();
+
+  React.useEffect(() => {
+    if (hasFetched && !loading && user === null) {
+      redirect("/login?callbackUrl=/min-side");
+    }
+  }, [hasFetched, loading, user]);
+
   const reservationsWithEvent = React.useMemo<ReservationWithEvent[]>(() => {
     return RESERVATIONS.reduce<ReservationWithEvent[]>((acc, reservation) => {
       const event = EVENTS.find((e) => e.id === reservation.eventId);
@@ -142,20 +152,20 @@ export default function MyPage() {
               className="rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-xs text-muted-foreground shadow-[0_14px_36px_rgba(0,0,0,0.6)] md:text-sm"
             >
               <p className="mb-1 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                Innlogget som (mock)
+                Innlogget som
               </p>
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[radial-gradient(circle_at_top,#22E4FF44,transparent_55%),radial-gradient(circle_at_bottom,#F044FF44,transparent_55%)] text-sm font-semibold text-foreground shadow-[0_10px_24px_rgba(0,0,0,0.6)]">
-                  {MOCK_USER.name.charAt(0)}
+                  {(user?.name ?? user?.email ?? "U").charAt(0)}
                 </div>
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-1 text-xs font-medium text-foreground md:text-sm">
                     <User2 className="h-3.5 w-3.5 text-primary" />
-                    <span>{MOCK_USER.name}</span>
+                    <span>{user?.name ?? "Ukjent bruker"}</span>
                   </div>
                   <div className="flex items-center gap-1 text-[11px] text-muted-foreground md:text-xs">
                     <Mail className="h-3.5 w-3.5" />
-                    <span>{MOCK_USER.email}</span>
+                    <span>{user?.email ?? "ukjent@bruker.no"}</span>
                   </div>
                 </div>
               </div>

@@ -166,3 +166,12 @@
     @apply bg-background text-foreground text-[13px] md:text-[14px] lg:text-[15px];
   }
 }
+
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
