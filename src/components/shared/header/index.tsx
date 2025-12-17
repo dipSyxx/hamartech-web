@@ -6,6 +6,7 @@ import Image from "next/image";
 import { motion, type Variants } from "framer-motion";
 import { useEffect } from "react";
 import { useUserStore } from "@/lib/stores/user-store";
+import { Spinner } from "@/components/ui/spinner";
 
 const headerVariants: Variants = {
   hidden: { opacity: 0, y: -12 },
@@ -121,8 +122,13 @@ export function Header() {
         </motion.nav>
 
         {/* CTA */}
-        <motion.div className="flex items-center gap-2" variants={ctaVariants}>
-          {isAuthed ? (
+        <motion.div className="flex items-center gap-3" variants={ctaVariants}>
+          {loading && !hasFetched ? (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Spinner size="sm" tone="muted" />
+              <span>Laster bruker...</span>
+            </div>
+          ) : isAuthed ? (
             <Button
               variant="outline"
               size="sm"
