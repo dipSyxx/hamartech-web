@@ -18,7 +18,7 @@ function generateTicketCode() {
 }
 
 function computeStatus(requiresRegistration: boolean): ReservationStatus {
-  return requiresRegistration ? "WAITLIST" : "CONFIRMED";
+  return requiresRegistration ? "CONFIRMED" : "CONFIRMED";
 }
 
 export async function POST(req: Request) {
@@ -76,9 +76,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, reservation, ticketToken: token });
   } catch (error) {
     console.error("create reservation error:", error);
-    return NextResponse.json(
-      { error: "Server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

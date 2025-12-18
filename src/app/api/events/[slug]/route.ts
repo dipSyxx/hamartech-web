@@ -2,18 +2,11 @@ import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
-  req: NextRequest,
-  { params }: { params?: { slug?: string | string[] } }
+  _req: NextRequest,
+  context: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const rawParam = params?.slug;
-    const slug =
-      typeof rawParam === "string"
-        ? rawParam
-        : Array.isArray(rawParam)
-          ? rawParam[0]
-          : req.nextUrl.pathname.split("/").pop() ?? "";
-
+    const { slug } = await context.params;
     if (!slug) {
       return NextResponse.json({ error: "Missing slug" }, { status: 400 });
     }
