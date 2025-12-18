@@ -39,18 +39,52 @@ import {
   XCircle,
 } from "lucide-react";
 
-import { EVENTS } from "@/lib/data/events";
-import { TRACK_META } from "@/lib/data/program-meta";
-import {
-  RESERVATIONS,
-  type Reservation,
-  type ReservationStatus,
-} from "@/lib/data/reservations";
+import { TRACK_META, type TrackId } from "@/lib/data/program-meta";
 
-type EventItem = (typeof EVENTS)[number];
+type ReservationStatus = "CONFIRMED" | "WAITLIST" | "CANCELLED";
 
-type ReservationWithEvent = Reservation & {
-  event: EventItem;
+type ApiVenue = {
+  id: string;
+  name: string;
+  label: string;
+  address: string | null;
+  city: string;
+  country: string | null;
+  mapQuery: string;
+  googleMapsUrl: string;
+  openStreetMapUrl: string;
+};
+
+type ApiEvent = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  trackId: TrackId;
+  dayLabel: string;
+  weekday: string;
+  dateLabel: string;
+  timeLabel: string;
+  targetGroup: string;
+  host: string;
+  isFree: boolean;
+  requiresRegistration: boolean;
+  startsAt: string | null;
+  endsAt: string | null;
+  venueLabel: string;
+  venue: ApiVenue;
+};
+
+type ApiReservation = {
+  id: string;
+  status: ReservationStatus;
+  quantity: number;
+  ticketCode: string | null;
+  ticketUrl: string | null;
+  qrDataUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+  event: ApiEvent;
 };
 
 type UserProfile = {
@@ -63,19 +97,19 @@ const STATUS_META: Record<
   ReservationStatus,
   { label: string; icon: React.ElementType; className: string }
 > = {
-  confirmed: {
+  CONFIRMED: {
     label: "Bekreftet",
     icon: CheckCircle2,
     className:
       "border-emerald-500/60 bg-emerald-500/10 text-emerald-300 dark:text-emerald-200",
   },
-  waitlist: {
+  WAITLIST: {
     label: "Venteliste",
     icon: ClockAlert,
     className:
       "border-amber-400/70 bg-amber-500/10 text-amber-300 dark:text-amber-200",
   },
-  cancelled: {
+  CANCELLED: {
     label: "Avlyst",
     icon: XCircle,
     className:
@@ -86,6 +120,12 @@ const STATUS_META: Record<
 export default function MyPage() {
   const { user, loading, hasFetched, fetchUser, clearUser } = useUserStore();
   const [saveMessage, setSaveMessage] = React.useState<string | null>(null);
+  const [reservations, setReservations] = React.useState<ApiReservation[]>([]);
+  const [reservationsLoading, setReservationsLoading] = React.useState(true);
+  const [reservationsError, setReservationsError] = React.useState<string | null>(
+    null
+  );
+  const reservationsFetchedRef = React.useRef(false);
   const handleProfileSave = (values: ProfileFormValues) => {
     setSaveMessage("Profilen er oppdatert lokalt.");
   };
@@ -94,6 +134,23 @@ export default function MyPage() {
     clearUser();
     await signOut({ callbackUrl: "/" });
   };
+
+  const fetchReservations = React.useCallback(async () => {
+    setReservationsError(null);
+    setReservationsLoading(true);
+    try {
+      const res = await fetch("/api/reservations");
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || "Kunne ikke hente reservasjoner.");
+      }
+      setReservations((data?.reservations ?? []) as ApiReservation[]);
+    } catch (err: any) {
+      setReservationsError(err?.message ?? "Kunne ikke hente reservasjoner.");
+    } finally {
+      setReservationsLoading(false);
+    }
+  }, []);
 
   React.useEffect(() => {
     if (!hasFetched && !loading) {
@@ -107,29 +164,40 @@ export default function MyPage() {
     }
   }, [hasFetched, loading, user]);
 
-  if (loading || !hasFetched) {
+  React.useEffect(() => {
+    if (reservationsFetchedRef.current) return;
+    if (!hasFetched || loading || !user) return;
+    reservationsFetchedRef.current = true;
+    fetchReservations();
+  }, [fetchReservations, hasFetched, loading, user]);
+
+  const upcomingReservations = React.useMemo(() => {
+    const now = Date.now();
+    return reservations.filter((reservation) => {
+      const endsAt = reservation.event.endsAt
+        ? new Date(reservation.event.endsAt).getTime()
+        : null;
+      return !endsAt || endsAt >= now;
+    });
+  }, [reservations]);
+
+  const pastReservations = React.useMemo(() => {
+    const now = Date.now();
+    return reservations.filter((reservation) => {
+      const endsAt = reservation.event.endsAt
+        ? new Date(reservation.event.endsAt).getTime()
+        : null;
+      return !!endsAt && endsAt < now;
+    });
+  }, [reservations]);
+
+  if (loading || !hasFetched || reservationsLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Spinner />
       </div>
     );
   }
-
-  const reservationsWithEvent = React.useMemo<ReservationWithEvent[]>(() => {
-    return RESERVATIONS.reduce<ReservationWithEvent[]>((acc, reservation) => {
-      const event = EVENTS.find((e) => e.id === reservation.eventId);
-      if (!event) return acc;
-      acc.push({ ...reservation, event });
-      return acc;
-    }, []);
-  }, []);
-
-  const upcomingReservations = reservationsWithEvent.filter(
-    (r) => r.kind === "upcoming"
-  );
-  const pastReservations = reservationsWithEvent.filter(
-    (r) => r.kind === "past"
-  );
 
   return (
     <div className="relative overflow-hidden">
@@ -162,9 +230,7 @@ export default function MyPage() {
                 Dine reservasjoner og billetter
               </h1>
               <p className="max-w-xl text-sm text-muted-foreground md:text-base">
-                Her ser du oversikt over arrangementer du har reservert plass
-                på. Senere kan denne siden kobles til innlogging og digitale
-                billetter med QR-kode.
+                Her ser du oversikt over arrangementer du har reservert plass på, og QR-billetter du kan vise ved innsjekk.
               </p>
             </div>
 
@@ -216,6 +282,30 @@ export default function MyPage() {
             />
           </motion.div>
 
+          {reservationsError && (
+            <motion.div
+              className="mt-6 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground shadow-[0_14px_36px_rgba(0,0,0,0.6)]"
+              variants={fadeInUp(0.04)}
+              initial="hidden"
+              animate="visible"
+            >
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                Kunne ikke hente reservasjoner
+              </p>
+              <p className="mt-2 text-sm">{reservationsError}</p>
+              <div className="mt-3">
+                <Button
+                  onClick={fetchReservations}
+                  variant="outline"
+                  size="sm"
+                  className="border-border/70"
+                >
+                  Prøv igjen
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
           <motion.div
             className="mt-8 grid gap-4 md:grid-cols-3"
             variants={fadeInUp(0.06)}
@@ -235,7 +325,7 @@ export default function MyPage() {
             <SummaryCard
               label="Forskjellige spor"
               value={new Set(
-                reservationsWithEvent.map((r) => r.event.trackId)
+                reservations.map((r) => r.event.trackId)
               ).size.toString()}
               icon={Ticket}
             />
@@ -259,8 +349,8 @@ export default function MyPage() {
                 </TabsList>
 
                 <p className="text-xs text-muted-foreground md:text-sm">
-                  Dette er en prototype-visning. I en senere løsning kan du
-                  administrere reservasjoner, avbestille og hente QR-billetter.
+                  Her finner du dine aktive reservasjoner og QR-billetter for
+                  innsjekk.
                 </p>
               </div>
 
@@ -288,7 +378,6 @@ export default function MyPage() {
                         <ReservationCard
                           item={reservation}
                           isUpcoming
-                          showQrPlaceholder={reservation.status === "confirmed"}
                         />
                       </motion.div>
                     ))}
@@ -298,10 +387,10 @@ export default function MyPage() {
 
               <TabsContent value="past" className="mt-2 space-y-4">
                 {pastReservations.length === 0 ? (
-                  <EmptyState
-                    title="Ingen tidligere arrangementer"
-                    description="Etter at festivalen er gjennomført, vil tidligere arrangementer du har deltatt på vises her."
-                  />
+                    <EmptyState
+                      title="Ingen tidligere arrangementer"
+                      description="Etter at festivalen er gjennomført, vil tidligere arrangementer du har deltatt på vises her."
+                    />
                 ) : (
                   <div className="space-y-4">
                     {pastReservations.map((reservation, index) => (
@@ -359,19 +448,24 @@ function SummaryCard({ label, value, icon: Icon }: SummaryCardProps) {
 }
 
 type ReservationCardProps = {
-  item: ReservationWithEvent;
+  item: ApiReservation;
   isUpcoming: boolean;
-  showQrPlaceholder?: boolean;
 };
 
 function ReservationCard({
   item,
   isUpcoming,
-  showQrPlaceholder,
 }: ReservationCardProps) {
   const event = item.event;
-  const track = TRACK_META[event.trackId as keyof typeof TRACK_META];
-  const TrackIcon = track.icon;
+  const trackMeta = TRACK_META[event.trackId];
+  const track = trackMeta ?? {
+    label: event.trackId,
+    shortLabel: event.trackId,
+    badgeClass: "",
+    pillClass: "",
+    icon: Ticket,
+  };
+  const TrackIcon = track.icon ?? Ticket;
 
   const statusMeta = STATUS_META[item.status];
 
@@ -390,7 +484,7 @@ function ReservationCard({
               <span>{event.dayLabel}</span>
               <span className="h-1 w-1 rounded-full bg-muted-foreground/60" />
               <span>
-                {event.weekday} – {event.date}
+                {event.weekday} – {event.dateLabel}
               </span>
             </p>
             <CardTitle className="text-base font-semibold md:text-lg">
@@ -400,11 +494,11 @@ function ReservationCard({
             <CardDescription className="flex flex-wrap items-center gap-2 text-[11px] md:text-xs">
               <span className="inline-flex items-center gap-1 text-muted-foreground">
                 <Clock3 className="h-3.5 w-3.5" />
-                {event.time}
+                {event.timeLabel}
               </span>
               <span className="inline-flex items-center gap-1 text-muted-foreground">
                 <MapPin className="h-3.5 w-3.5" />
-                {event.venue}
+                {event.venueLabel}
               </span>
             </CardDescription>
           </div>
@@ -444,21 +538,34 @@ function ReservationCard({
             </p>
           </div>
 
-          {isUpcoming && showQrPlaceholder && (
-            <div className="mt-1 flex flex-col items-center gap-2 rounded-2xl border border-border/70 bg-background/70 p-3 text-center text-[11px] text-muted-foreground shadow-[0_10px_30px_rgba(0,0,0,0.6)] md:w-48">
-              <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-[radial-gradient(circle_at_top,#22E4FF44,transparent_55%),radial-gradient(circle_at_bottom,#F044FF55,transparent_55%)] shadow-[0_14px_34px_rgba(0,0,0,0.7)]">
-                <div className="h-12 w-12 rounded-lg border border-dashed border-border/70 bg-background/70" />
-              </div>
-              <p className="flex items-center justify-center gap-1">
-                <Ticket className="h-3.5 w-3.5 text-primary" />
-                Digital billett
-              </p>
-              <p className="text-[10px] text-muted-foreground/80">
-                QR-kode blir tilgjengelig nærmere arrangementsstart i den
-                endelige løsningen.
-              </p>
-            </div>
-          )}
+          {isUpcoming && item.qrDataUrl && (
+  <div className="mt-1 flex flex-col items-center gap-2 rounded-2xl border border-border/70 bg-background/70 p-3 text-center text-[11px] text-muted-foreground shadow-[0_10px_30px_rgba(0,0,0,0.6)] md:w-52">
+    <img
+      src={item.qrDataUrl}
+      alt="QR billett"
+      width={160}
+      height={160}
+      className="h-40 w-40 rounded-xl border border-border/70 bg-background/80 object-contain"
+    />
+    {item.ticketCode && (
+      <p className="font-mono text-[10px] text-muted-foreground">
+        Ticket: {item.ticketCode}
+      </p>
+    )}
+    {item.ticketUrl && (
+      <Button asChild variant="outline" size="sm" className="border-border/70">
+        <a href={item.ticketUrl} target="_blank" rel="noreferrer">
+          Åpne billett
+        </a>
+      </Button>
+    )}
+    {item.status !== "CONFIRMED" && (
+      <p className="text-[10px] text-muted-foreground/80">
+        QR brukes ved innsjekk når status er Bekreftet.
+      </p>
+    )}
+  </div>
+)}
         </div>
       </CardContent>
 

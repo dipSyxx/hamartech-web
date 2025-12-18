@@ -24,6 +24,12 @@ function base64url(input: Buffer | string) {
     .replace(/\//g, "_");
 }
 
+function fromBase64url(input: string) {
+  const base64 = input.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+  return Buffer.from(padded, "base64");
+}
+
 export function signTicket(payload: TicketPayload) {
   const secret = getSecret();
   const body = JSON.stringify(payload);
@@ -39,9 +45,13 @@ export function verifyTicket(token: string): TicketPayload {
   if (!bodyPart || !sigPart) {
     throw new Error("Invalid token");
   }
-  const body = Buffer.from(bodyPart, "base64").toString("utf8");
+  const body = fromBase64url(bodyPart).toString("utf8");
   const expected = crypto.createHmac(ALGO, secret).update(body).digest();
-  const received = Buffer.from(sigPart.replace(/-/g, "+").replace(/_/g, "/"), "base64");
+  const received = fromBase64url(sigPart);
+
+  if (received.length !== expected.length) {
+    throw new Error("Invalid signature");
+  }
 
   if (!crypto.timingSafeEqual(expected, received)) {
     throw new Error("Invalid signature");

@@ -1,4 +1,5 @@
 import { signTicket, type TicketPayload } from "./sign";
+import QRCode from "qrcode";
 
 function appUrl() {
   return process.env.NEXT_PUBLIC_APP_URL ?? "";
@@ -16,9 +17,19 @@ export function ticketLink(token: string) {
   return `HT:${token}`;
 }
 
-export function ticketDataUrl(token: string) {
+export function ticketQrImageUrl(token: string, size = 260) {
+  const base = appUrl();
+  const path = `/api/qr?token=${encodeURIComponent(token)}&size=${encodeURIComponent(
+    String(size)
+  )}`;
+  return base ? `${base.replace(/\/$/, "")}${path}` : path;
+}
+
+export async function ticketQrDataUrl(token: string, size = 260) {
   const content = ticketLink(token);
-  // Text data URL; can be replaced with real QR PNG generation later.
-  const encoded = Buffer.from(content).toString("base64");
-  return `data:text/plain;base64,${encoded}`;
+  return QRCode.toDataURL(content, {
+    errorCorrectionLevel: "M",
+    margin: 1,
+    width: size,
+  });
 }

@@ -16,8 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { EVENTS } from "@/lib/data/events";
-import { TRACK_META } from "@/lib/data/program-meta";
+import { TRACK_META, type TrackId } from "@/lib/data/program-meta";
 
 import {
   fadeInUp,
@@ -28,6 +27,33 @@ import {
 import { BackgroundGlows } from "@/components/shared/background-glows";
 import React from "react";
 import { useUserStore } from "@/lib/stores/user-store";
+import { Spinner } from "@/components/ui/spinner";
+
+type HomeEvent = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  dayLabel: string;
+  time: string;
+  venue: string;
+  trackId: TrackId;
+  targetGroup: string;
+};
+
+function mapApiEvent(event: any): HomeEvent {
+  return {
+    id: event.id,
+    slug: event.slug,
+    title: event.title,
+    description: event.description,
+    dayLabel: event.dayLabel,
+    time: event.timeLabel ?? event.time ?? "",
+    venue: event.venueLabel ?? event.venue?.label ?? "",
+    trackId: event.trackId as TrackId,
+    targetGroup: event.targetGroup ?? "",
+  };
+}
 
 const TRACKS = [
   {
@@ -67,12 +93,48 @@ const TRACKS = [
 
 export default function Home() {
   const { fetchUser, loading, hasFetched } = useUserStore();
+  const [events, setEvents] = React.useState<HomeEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = React.useState(true);
+  const [eventsError, setEventsError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!hasFetched && !loading) {
       fetchUser();
     }
   }, [fetchUser, hasFetched, loading]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      setEventsLoading(true);
+      setEventsError(null);
+      try {
+        const res = await fetch("/api/events");
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data?.error || "Kunne ikke hente arrangementer.");
+        }
+        const mapped: HomeEvent[] =
+          data?.events?.map((event: any) => mapApiEvent(event)) ?? [];
+        if (!cancelled) setEvents(mapped);
+      } catch (err: any) {
+        if (!cancelled) {
+          setEventsError(err?.message ?? "Kunne ikke hente arrangementer.");
+        }
+      } finally {
+        if (!cancelled) setEventsLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const previewEvents = React.useMemo(() => events.slice(0, 4), [events]);
 
   return (
     <div className="relative overflow-hidden">
@@ -253,76 +315,94 @@ export default function Home() {
           </motion.header>
 
           <div className="grid gap-4 md:grid-cols-2">
-            {React.useMemo(() => EVENTS.slice(0, 4), []).map((event, index) => {
-              const track = TRACK_META[event.trackId];
-
-              return (
-                <motion.div
-                  key={event.id}
-                  variants={fadeInUp(0.05 * index)}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.2 }}
+            {eventsLoading ? (
+              <div className="col-span-full flex items-center justify-center py-10">
+                <Spinner className="h-8 w-8 text-primary" />
+              </div>
+            ) : eventsError ? (
+              <div className="col-span-full flex flex-col items-center justify-center gap-3 py-10 text-center">
+                <p className="text-sm text-muted-foreground">{eventsError}</p>
+                <Button
+                  onClick={() => window.location.reload()}
+                  variant="outline"
+                  size="sm"
+                  className="border-border/70"
                 >
-                  <Card
-                    className={cn(
-                      "border-border/80 bg-background/75 shadow-[0_12px_35px_rgba(0,0,0,0.6)]",
-                      "transition-[border-color,background-color,box-shadow] duration-200 ease-out",
-                      "hover:border-primary/70 hover:bg-background/90 hover:shadow-[0_18px_55px_rgba(0,0,0,0.75)]"
-                    )}
+                  Prøv igjen
+                </Button>
+              </div>
+            ) : (
+              previewEvents.map((event, index) => {
+                const track = TRACK_META[event.trackId];
+
+                return (
+                  <motion.div
+                    key={event.id}
+                    variants={fadeInUp(0.05 * index)}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.2 }}
                   >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                        <span className="uppercase tracking-[0.16em]">
-                          {event.dayLabel}
-                        </span>
-                        <span>{event.time}</span>
-                      </div>
-                      <CardTitle className="mt-3 text-base md:text-lg">
-                        {event.title}
-                      </CardTitle>
-                      <CardDescription className="mt-2">
-                        {event.description}
-                      </CardDescription>
-                    </CardHeader>
+                    <Card
+                      className={cn(
+                        "border-border/80 bg-background/75 shadow-[0_12px_35px_rgba(0,0,0,0.6)]",
+                        "transition-[border-color,background-color,box-shadow] duration-200 ease-out",
+                        "hover:border-primary/70 hover:bg-background/90 hover:shadow-[0_18px_55px_rgba(0,0,0,0.75)]"
+                      )}
+                    >
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                          <span className="uppercase tracking-[0.16em]">
+                            {event.dayLabel}
+                          </span>
+                          <span>{event.time}</span>
+                        </div>
+                        <CardTitle className="mt-3 text-base md:text-lg">
+                          {event.title}
+                        </CardTitle>
+                        <CardDescription className="mt-2">
+                          {event.description}
+                        </CardDescription>
+                      </CardHeader>
 
-                    <CardContent className="pt-0">
-                      <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <Badge
-                          variant="outline"
-                          className={cn("px-2 py-1", track.badgeClass)}
-                        >
-                          {track.shortLabel}
-                        </Badge>
-                        <Badge
-                          variant="outline"
-                          className="border-border/60 bg-background/40 px-2 py-1 text-muted-foreground"
-                        >
-                          {event.targetGroup}
-                        </Badge>
-                      </div>
+                      <CardContent className="pt-0">
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className={cn("px-2 py-1", track.badgeClass)}
+                          >
+                            {track.shortLabel}
+                          </Badge>
+                          <Badge
+                            variant="outline"
+                            className="border-border/60 bg-background/40 px-2 py-1 text-muted-foreground"
+                          >
+                            {event.targetGroup}
+                          </Badge>
+                        </div>
 
-                      <div className="mt-3 text-xs text-muted-foreground">
-                        <span className="font-semibold uppercase tracking-[0.16em]">
-                          Sted:
-                        </span>{" "}
-                        <span>{event.venue}</span>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="flex justify-end px-6 pb-5 pt-2">
-                      <Button
-                        asChild
-                        variant="outline"
-                        size="sm"
-                        className="border-border/70"
-                      >
-                        <Link href={`/program/${event.slug}`}>Se detaljer</Link>
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                </motion.div>
-              );
-            })}
+                        <div className="mt-3 text-xs text-muted-foreground">
+                          <span className="font-semibold uppercase tracking-[0.16em]">
+                            Sted:
+                          </span>{" "}
+                          <span>{event.venue}</span>
+                        </div>
+                      </CardContent>
+                      <CardFooter className="flex justify-end px-6 pb-5 pt-2">
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                          className="border-border/70"
+                        >
+                          <Link href={`/program/${event.slug}`}>Se detaljer</Link>
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  </motion.div>
+                );
+              })
+            )}
           </div>
         </div>
       </motion.section>
