@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react'
 import { useUserStore } from '@/lib/stores/user-store'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
-import { Menu, X } from 'lucide-react'
+import { Menu } from 'lucide-react'
 
 const headerVariants: Variants = {
   hidden: { opacity: 0, y: -12 },
@@ -112,11 +112,8 @@ export function Header() {
           </DialogTrigger>
           <DialogContent className="max-w-sm">
             <div className="flex flex-col gap-4 py-4">
-              <div className="flex items-center justify-between border-b border-border/60 pb-4">
+              <div className="border-b border-border/60 pb-4">
                 <h2 className="text-lg font-semibold">Meny</h2>
-                <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)} aria-label="Lukk meny">
-                  <X className="h-5 w-5" />
-                </Button>
               </div>
               <nav className="flex flex-col gap-2">
                 {navLinks.map((link) => (
