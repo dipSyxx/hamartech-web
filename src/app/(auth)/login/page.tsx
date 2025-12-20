@@ -73,12 +73,13 @@ function LoginContent() {
       return
     }
 
-    // Don't call clearUser() here to avoid race condition
-    // fetchUser() will automatically update data when session is available
-    // Use window.location.replace for full page reload to ensure cookies are set
-    // This ensures the session cookie is properly set before navigation
+    // Wait a bit for the session cookie to be set server-side
+    // Then do a full page reload to ensure middleware can read the cookie
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
     const targetUrl = callbackUrl && callbackUrl !== '/' ? callbackUrl : '/'
-    window.location.replace(targetUrl)
+    // Use window.location.assign for full page reload
+    window.location.assign(targetUrl)
   }
 
   return (
