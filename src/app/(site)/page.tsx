@@ -83,6 +83,7 @@ export default function Home() {
   const [events, setEvents] = React.useState<HomeEvent[]>([])
   const [eventsLoading, setEventsLoading] = React.useState(true)
   const [eventsError, setEventsError] = React.useState<string | null>(null)
+  const refetchAttemptedRef = React.useRef(false)
 
   // Fetch user on first load
   React.useEffect(() => {
@@ -92,9 +93,15 @@ export default function Home() {
   }, [fetchUser, hasFetched, loading])
 
   // Force fetch user after login, if session exists but user is not loaded
+  // Only attempt once to prevent infinite loops
   React.useEffect(() => {
-    if (sessionStatus === 'authenticated' && hasFetched && !user && !loading) {
+    if (sessionStatus === 'authenticated' && hasFetched && !user && !loading && !refetchAttemptedRef.current) {
+      refetchAttemptedRef.current = true
       refetchUser()
+    }
+    // Reset refetch attempt if session becomes unauthenticated
+    if (sessionStatus === 'unauthenticated') {
+      refetchAttemptedRef.current = false
     }
   }, [sessionStatus, refetchUser, hasFetched, loading, user])
 
