@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input'
 
 import { BackgroundGlows } from '@/components/shared/background-glows'
 import { cn } from '@/lib/utils'
-import { redirect } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { Spinner } from '@/components/ui/spinner'
 import { useUserStore } from '@/lib/stores/user-store'
@@ -95,6 +95,7 @@ const STATUS_META: Record<ReservationStatus, { label: string; icon: React.Elemen
 }
 
 export default function MyPage() {
+  const router = useRouter()
   const { status: sessionStatus } = useSession()
   const { user, loading, hasFetched, fetchUser, clearUser } = useUserStore()
   const [saveMessage, setSaveMessage] = React.useState<string | null>(null)
@@ -102,6 +103,8 @@ export default function MyPage() {
   const [reservationsLoading, setReservationsLoading] = React.useState(true)
   const [reservationsError, setReservationsError] = React.useState<string | null>(null)
   const reservationsFetchedRef = React.useRef(false)
+  const redirectAttemptedRef = React.useRef(false)
+
   const handleProfileSave = (values: ProfileFormValues) => {
     setSaveMessage('Profilen er oppdatert lokalt.')
   }
@@ -129,11 +132,17 @@ export default function MyPage() {
   }, [])
 
   // Перевірка авторизації через useSession
+  // Тільки перенаправляємо якщо сесія точно не автентифікована (не завантажується)
   React.useEffect(() => {
-    if (sessionStatus === 'unauthenticated') {
-      redirect('/login?callbackUrl=/min-side')
+    if (sessionStatus === 'unauthenticated' && !redirectAttemptedRef.current) {
+      redirectAttemptedRef.current = true
+      router.push('/login?callbackUrl=/min-side')
     }
-  }, [sessionStatus])
+    // Reset redirect attempt if session becomes authenticated
+    if (sessionStatus === 'authenticated') {
+      redirectAttemptedRef.current = false
+    }
+  }, [sessionStatus, router])
 
   // Завантаження даних користувача, якщо сесія є
   React.useEffect(() => {
