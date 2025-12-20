@@ -251,7 +251,7 @@ export async function POST(req: Request) {
         toName: user.name,
         ticketCode,
         ticketUrl,
-        qrDataUrl,
+        qrDataUrl: qrImageUrl, // Use URL instead of data URL for email compatibility
         reservation: {
           id: reservation.id,
           status: reservation.status,
