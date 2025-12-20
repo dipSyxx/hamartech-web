@@ -1,25 +1,26 @@
-"use client";
+'use client'
 
-import { create } from "zustand";
+import { create } from 'zustand'
 
 type User = {
-  id: string;
-  email: string;
-  name?: string | null;
-  phone?: string | null;
-  role?: string | null;
-  emailVerifiedAt?: string | null;
-};
+  id: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  role?: string | null
+  emailVerifiedAt?: string | null
+}
 
 type UserState = {
-  user: User | null;
-  loading: boolean;
-  error: string | null;
-  hasFetched: boolean;
-  setUser: (user: User | null) => void;
-  clearUser: () => void;
-  fetchUser: () => Promise<void>;
-};
+  user: User | null
+  loading: boolean
+  error: string | null
+  hasFetched: boolean
+  setUser: (user: User | null) => void
+  clearUser: () => void
+  fetchUser: () => Promise<void>
+  refetchUser: () => Promise<void>
+}
 
 export const useUserStore = create<UserState>((set, get) => ({
   user: null,
@@ -32,31 +33,61 @@ export const useUserStore = create<UserState>((set, get) => ({
   clearUser: () => set({ user: null, error: null, hasFetched: false }),
 
   fetchUser: async () => {
-    const { loading, hasFetched } = get();
-    if (loading || hasFetched) return;
+    const { loading, hasFetched } = get()
+    if (loading || hasFetched) return
 
-    set({ loading: true, error: null });
+    set({ loading: true, error: null })
     try {
-      const res = await fetch("/api/user", {
-        method: "GET",
-        credentials: "include",
-      });
+      const res = await fetch('/api/user', {
+        method: 'GET',
+        credentials: 'include',
+      })
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error || "Kunne ikke hente brukerdata.");
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.error || 'Kunne ikke hente brukerdata.')
       }
 
-      const data = await res.json();
-      set({ user: data.user ?? null, hasFetched: true });
+      const data = await res.json()
+      set({ user: data.user ?? null, hasFetched: true })
     } catch (error: any) {
       set({
-        error: error?.message ?? "Uventet feil",
+        error: error?.message ?? 'Uventet feil',
         user: null,
         hasFetched: true,
-      });
+      })
     } finally {
-      set({ loading: false });
+      set({ loading: false })
     }
   },
-}));
+
+  refetchUser: async () => {
+    const { loading } = get()
+    if (loading) return
+
+    // Скидаємо hasFetched, щоб примусово завантажити користувача
+    set({ hasFetched: false, loading: true, error: null })
+    try {
+      const res = await fetch('/api/user', {
+        method: 'GET',
+        credentials: 'include',
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.error || 'Kunne ikke hente brukerdata.')
+      }
+
+      const data = await res.json()
+      set({ user: data.user ?? null, hasFetched: true })
+    } catch (error: any) {
+      set({
+        error: error?.message ?? 'Uventet feil',
+        user: null,
+        hasFetched: true,
+      })
+    } finally {
+      set({ loading: false })
+    }
+  },
+}))
