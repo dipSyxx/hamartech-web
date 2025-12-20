@@ -1,16 +1,14 @@
-import { NextResponse, type NextRequest } from 'next/server'
-import { getToken } from 'next-auth/jwt'
+import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
 
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const token = await getToken({
-      req,
-      secret: process.env.NEXTAUTH_SECRET,
-    })
+    const session = await getServerSession(authOptions)
 
-    const userId = (token as { uid?: string } | undefined)?.uid
+    const userId = (session?.user as { id?: string } | undefined)?.id
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
