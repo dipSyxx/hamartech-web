@@ -388,7 +388,39 @@ export default function ApproverScanPage() {
                   <h3 className="text-sm font-semibold text-foreground mb-2">Reservasjon</h3>
                   <div className="space-y-1.5 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Status:</span>
+                      <span className="text-muted-foreground">Check-in status:</span>
+                      <span
+                        className={`font-medium ${
+                          result.checkIns && result.checkIns.length > 0 ? 'text-emerald-400' : 'text-amber-400'
+                        }`}
+                      >
+                        {result.checkIns && result.checkIns.length > 0 ? 'Sjekket inn' : 'Ikke sjekket inn'}
+                      </span>
+                    </div>
+                    {result.checkIns && result.checkIns.length > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Sjekket inn:</span>
+                        <span className="font-medium text-foreground">
+                          {new Date(result.checkIns[0].scannedAt).toLocaleDateString('no-NO', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                    )}
+                    {result.checkIns && result.checkIns.length > 0 && result.checkIns[0].scannedBy && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Av:</span>
+                        <span className="font-medium text-foreground">
+                          {result.checkIns[0].scannedBy.name ?? result.checkIns[0].scannedBy.email}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Reservasjon status:</span>
                       <span className="font-medium text-foreground">
                         {result.status === 'CONFIRMED'
                           ? 'Bekreftet'
@@ -494,39 +526,6 @@ export default function ApproverScanPage() {
                           </p>
                         </div>
                       )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Check-in Info */}
-                {result.checkIns && result.checkIns.length > 0 && (
-                  <div>
-                    <h3 className="text-sm font-semibold text-foreground mb-2">Check-in</h3>
-                    <div className="space-y-2 text-sm">
-                      {result.checkIns.map((checkIn) => (
-                        <div key={checkIn.id} className="rounded border border-border/50 bg-background/30 p-2">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Sjekket inn:</span>
-                            <span className="font-medium text-foreground">
-                              {new Date(checkIn.scannedAt).toLocaleDateString('no-NO', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </span>
-                          </div>
-                          {checkIn.scannedBy && (
-                            <div className="flex justify-between mt-1">
-                              <span className="text-muted-foreground">Av:</span>
-                              <span className="font-medium text-foreground">
-                                {checkIn.scannedBy.name ?? checkIn.scannedBy.email}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      ))}
                     </div>
                   </div>
                 )}
