@@ -90,6 +90,29 @@ export default function ApproverScanPage() {
       setCameraError(null)
       setError(null)
 
+      // Check if camera is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Kamera er ikke tilgjengelig i denne nettleseren')
+      }
+
+      // Explicitly request camera permission first (important for mobile)
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+        })
+        // Stop the stream immediately, we just needed permission
+        stream.getTracks().forEach((track) => track.stop())
+      } catch (permissionErr) {
+        const err = permissionErr as Error
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          throw new Error('Kameratilgang ble nektet. Vennligst tillat tilgang i nettleserinnstillingene.')
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          throw new Error('Ingen kamera funnet på enheten')
+        } else {
+          throw new Error(`Kunne ikke få tilgang til kamera: ${err.message}`)
+        }
+      }
+
       if (!scanContainerRef.current) {
         throw new Error('Scan container not found')
       }
@@ -119,7 +142,15 @@ export default function ApproverScanPage() {
       const errorMsg = err instanceof Error ? err.message : 'Kunne ikke starte kamera'
       setCameraError(errorMsg)
       setIsScanning(false)
-      scannerRef.current = null
+      if (scannerRef.current) {
+        try {
+          await scannerRef.current.stop()
+          scannerRef.current.clear()
+        } catch {
+          // Ignore cleanup errors
+        }
+        scannerRef.current = null
+      }
     }
   }, [processToken])
 
@@ -200,10 +231,15 @@ export default function ApproverScanPage() {
 
             {cameraError && (
               <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
-                <p className="text-xs text-destructive">{cameraError}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Sørg for at du har gitt tillatelse til å bruke kameraet
-                </p>
+                <p className="text-xs font-medium text-destructive">{cameraError}</p>
+                <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                  <p>• Sørg for at du har gitt tillatelse til å bruke kameraet</p>
+                  <p>• Sjekk at nettleseren har tilgang til kamera i innstillingene</p>
+                  <p>• På mobil: Sjekk at nettleseren har kamera-tillatelse i telefoninnstillingene</p>
+                  {typeof window !== 'undefined' && window.location.protocol !== 'https:' && (
+                    <p className="text-amber-400">• Kamera krever HTTPS. Sørg for at du bruker en sikker tilkobling</p>
+                  )}
+                </div>
               </div>
             )}
           </div>
