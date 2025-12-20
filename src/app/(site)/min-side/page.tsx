@@ -496,7 +496,7 @@ function ReservationCard({ item, isUpcoming }: ReservationCardProps) {
           )}
         </div>
 
-        <Button asChild size="sm" className="text-xs">
+        <Button asChild size="sm" className="text-xs border-0">
           <Link href={`/program/${event.slug}`}>
             Se detaljer
             <Ticket className="ml-2 h-4 w-4" />
@@ -592,7 +592,7 @@ function ProfileForm({
           {saveMessage && <p className="text-xs text-emerald-400">{saveMessage}</p>}
 
           <div className="flex justify-end">
-            <Button type="submit" size="sm" disabled={isSubmitting || !user}>
+            <Button type="submit" size="sm" disabled={isSubmitting || !user} className="border-0">
               {isSubmitting ? 'Lagrer...' : 'Lagre endringer'}
             </Button>
           </div>
