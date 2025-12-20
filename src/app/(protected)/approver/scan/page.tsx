@@ -11,6 +11,9 @@ import { Camera, X, ScanLine, CheckCircle2 } from 'lucide-react'
 type ReservationResult = {
   id: string
   status: string
+  quantity: number
+  ticketCode: string | null
+  createdAt: string
   user?: {
     id: string
     name?: string | null
@@ -20,12 +23,31 @@ type ReservationResult = {
   event?: {
     id: string
     title: string
+    description: string
+    dayLabel: string
+    weekday: string
+    dateLabel: string
+    timeLabel: string
+    targetGroup: string
+    host: string
+    isFree: boolean
     venue?: {
+      id: string
       name: string
       label: string
+      address: string | null
+      city: string
     }
   }
-  checkIns?: Array<{ id: string }>
+  checkIns?: Array<{
+    id: string
+    scannedAt: string
+    scannedBy?: {
+      id: string
+      name: string | null
+      email: string
+    } | null
+  }>
 }
 
 // Extract token from URL or return as-is if it's already a token
@@ -187,8 +209,17 @@ export default function ApproverScanPage() {
           qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0,
         },
-        (decodedText) => {
-          // Success callback
+        async (decodedText) => {
+          // Success callback - stop scanner immediately after successful scan
+          try {
+            await html5QrCode.stop()
+            html5QrCode.clear()
+            scannerRef.current = null
+            setIsScanning(false)
+          } catch {
+            // Ignore stop errors
+          }
+          // Process the token
           processToken(decodedText)
         },
         () => {
@@ -350,36 +381,166 @@ export default function ApproverScanPage() {
 
           {/* Result Display */}
           {result && (
-            <div className="space-y-3 rounded-lg border border-border/70 bg-background/50 p-4">
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="font-medium text-muted-foreground">Bruker:</span>{' '}
-                  <span className="text-foreground">{result.user?.name ?? result.user?.email ?? 'Ukjent'}</span>
+            <div className="space-y-4 rounded-lg border border-border/70 bg-background/50 p-4">
+              {/* Reservation Info */}
+              <div className="space-y-3">
+                <div className="border-b border-border/50 pb-3">
+                  <h3 className="text-sm font-semibold text-foreground mb-2">Reservasjon</h3>
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Status:</span>
+                      <span className="font-medium text-foreground">
+                        {result.status === 'CONFIRMED'
+                          ? 'Bekreftet'
+                          : result.status === 'WAITLIST'
+                          ? 'Venteliste'
+                          : 'Kansellert'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Antall:</span>
+                      <span className="font-medium text-foreground">{result.quantity}</span>
+                    </div>
+                    {result.ticketCode && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Billettkode:</span>
+                        <span className="font-mono text-xs font-medium text-foreground">{result.ticketCode}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Opprettet:</span>
+                      <span className="font-medium text-foreground">
+                        {new Date(result.createdAt).toLocaleDateString('no-NO', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-medium text-muted-foreground">Event:</span>{' '}
-                  <span className="text-foreground">{result.event?.title}</span>
+
+                {/* User Info */}
+                <div className="border-b border-border/50 pb-3">
+                  <h3 className="text-sm font-semibold text-foreground mb-2">Bruker</h3>
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Navn:</span>
+                      <span className="font-medium text-foreground">{result.user?.name ?? 'Ikke oppgitt'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">E-post:</span>
+                      <span className="font-medium text-foreground break-all">
+                        {result.user?.email ?? 'Ikke oppgitt'}
+                      </span>
+                    </div>
+                    {result.user?.phone && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Telefon:</span>
+                        <span className="font-medium text-foreground">{result.user.phone}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <span className="font-medium text-muted-foreground">Status:</span>{' '}
-                  <span className="text-foreground">{result.status}</span>
-                </div>
+
+                {/* Event Info */}
+                {result.event && (
+                  <div className="border-b border-border/50 pb-3">
+                    <h3 className="text-sm font-semibold text-foreground mb-2">Event</h3>
+                    <div className="space-y-1.5 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Tittel:</span>
+                        <p className="font-medium text-foreground mt-0.5">{result.event.title}</p>
+                      </div>
+                      {result.event.description && (
+                        <div>
+                          <span className="text-muted-foreground">Beskrivelse:</span>
+                          <p className="text-foreground mt-0.5 line-clamp-2">{result.event.description}</p>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Dag:</span>
+                        <span className="font-medium text-foreground">{result.event.dayLabel}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Ukedag:</span>
+                        <span className="font-medium text-foreground">{result.event.weekday}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Dato:</span>
+                        <span className="font-medium text-foreground">{result.event.dateLabel}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Tid:</span>
+                        <span className="font-medium text-foreground">{result.event.timeLabel}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Målgruppe:</span>
+                        <span className="font-medium text-foreground">{result.event.targetGroup}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Arrangør:</span>
+                        <span className="font-medium text-foreground">{result.event.host}</span>
+                      </div>
+                      {result.event.venue && (
+                        <div>
+                          <span className="text-muted-foreground">Sted:</span>
+                          <p className="font-medium text-foreground mt-0.5">
+                            {result.event.venue.label}
+                            {result.event.venue.address && `, ${result.event.venue.address}`}
+                            {result.event.venue.city && `, ${result.event.venue.city}`}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Check-in Info */}
                 {result.checkIns && result.checkIns.length > 0 && (
                   <div>
-                    <span className="font-medium text-muted-foreground">Allerede sjekket inn:</span>{' '}
-                    <span className="text-foreground">Ja</span>
+                    <h3 className="text-sm font-semibold text-foreground mb-2">Check-in</h3>
+                    <div className="space-y-2 text-sm">
+                      {result.checkIns.map((checkIn) => (
+                        <div key={checkIn.id} className="rounded border border-border/50 bg-background/30 p-2">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Sjekket inn:</span>
+                            <span className="font-medium text-foreground">
+                              {new Date(checkIn.scannedAt).toLocaleDateString('no-NO', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                          </div>
+                          {checkIn.scannedBy && (
+                            <div className="flex justify-between mt-1">
+                              <span className="text-muted-foreground">Av:</span>
+                              <span className="font-medium text-foreground">
+                                {checkIn.scannedBy.name ?? checkIn.scannedBy.email}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
 
-              <div className="flex gap-2">
+              {/* Actions */}
+              <div className="flex gap-2 pt-2">
                 {result.status === 'CONFIRMED' && !result.checkIns?.length && (
                   <Button variant="outline" onClick={handleCheckIn} disabled={loading} className="flex-1">
                     {loading ? 'Sjekker inn...' : 'Bekreft check-in'}
                   </Button>
                 )}
                 <Button variant="ghost" onClick={handleNewScan} className="flex-1">
-                  <Camera className="h-4 w-4" />
+                  <Camera className="h-4 w-4 mr-2" />
                   Ny skanning
                 </Button>
               </div>
