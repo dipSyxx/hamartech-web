@@ -113,6 +113,21 @@ export default function ApproverScanPage() {
         }
       }
 
+      // Set scanning state first to render the container
+      setIsScanning(true)
+
+      // Wait for DOM to update and container to be rendered
+      await new Promise((resolve) => {
+        // Use requestAnimationFrame to wait for next render cycle
+        requestAnimationFrame(() => {
+          // Double RAF to ensure DOM is fully updated
+          requestAnimationFrame(() => {
+            resolve(undefined)
+          })
+        })
+      })
+
+      // Now check if container exists
       if (!scanContainerRef.current) {
         throw new Error('Scan container not found')
       }
@@ -136,8 +151,6 @@ export default function ApproverScanPage() {
           // Only show actual errors
         },
       )
-
-      setIsScanning(true)
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Kunne ikke starte kamera'
       setCameraError(errorMsg)
