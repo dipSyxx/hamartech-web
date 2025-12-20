@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -32,6 +32,7 @@ export default function LoginPage() {
 }
 
 function LoginContent() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') ?? '/min-side'
   const successMessage = searchParams.get('message')
@@ -73,13 +74,11 @@ function LoginContent() {
       return
     }
 
-    // Wait a bit for the session cookie to be set server-side
-    // Then do a full page reload to ensure middleware can read the cookie
-    await new Promise((resolve) => setTimeout(resolve, 300))
-
-    const targetUrl = callbackUrl && callbackUrl !== '/' ? callbackUrl : '/'
-    // Use window.location.assign for full page reload
-    window.location.assign(targetUrl)
+    // Don't call clearUser() here to avoid race condition
+    // fetchUser() will automatically update data when session is available
+    // Always redirect to home page after successful login
+    router.push('/')
+    router.refresh()
   }
 
   return (
