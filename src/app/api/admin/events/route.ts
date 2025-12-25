@@ -66,7 +66,7 @@ export async function POST(req: Request) {
     const parsed = CreateEventSchema.safeParse(body)
 
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid data', details: parsed.error.errors }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid data', details: parsed.error.issues }, { status: 400 })
     }
 
     const data = parsed.data
@@ -135,7 +135,7 @@ export async function PUT(req: Request) {
 
     const parsed = UpdateEventSchema.safeParse(updateData)
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid data', details: parsed.error.errors }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid data', details: parsed.error.issues }, { status: 400 })
     }
 
     const data: any = {}

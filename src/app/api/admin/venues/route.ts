@@ -82,7 +82,7 @@ export async function POST(req: Request) {
     const parsed = CreateVenueSchema.safeParse(body)
 
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid data', details: parsed.error.errors }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid data', details: parsed.error.issues }, { status: 400 })
     }
 
     const venue = await prisma.venue.create({
@@ -127,7 +127,7 @@ export async function PUT(req: Request) {
 
     const parsed = UpdateVenueSchema.safeParse(updateData)
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid data', details: parsed.error.errors }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid data', details: parsed.error.issues }, { status: 400 })
     }
 
     const data: any = {}
