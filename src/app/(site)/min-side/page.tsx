@@ -20,7 +20,19 @@ import { signOut, useSession } from 'next-auth/react'
 import { Spinner } from '@/components/ui/spinner'
 import { useUserStore } from '@/lib/stores/user-store'
 
-import { CalendarDays, Clock3, MapPin, Ticket, User2, Mail, CheckCircle2, ClockAlert, XCircle } from 'lucide-react'
+import {
+  CalendarDays,
+  Clock3,
+  MapPin,
+  Ticket,
+  User2,
+  Mail,
+  CheckCircle2,
+  ClockAlert,
+  XCircle,
+  Shield,
+  ScanLine,
+} from 'lucide-react'
 
 import { TRACK_META, type TrackId } from '@/lib/data/program-meta'
 
@@ -230,9 +242,29 @@ export default function MyPage() {
                     </div>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" className="border-border/70" onClick={handleSignOut}>
-                  Logg ut
-                </Button>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  {(user?.role === 'ADMIN' || user?.role === 'APPROVER') && (
+                    <div className="flex gap-2">
+                      {user?.role === 'ADMIN' && (
+                        <Button asChild variant="outline" size="sm" className="border-border/70">
+                          <Link href="/admin">
+                            <Shield className="mr-2 h-3.5 w-3.5" />
+                            Admin
+                          </Link>
+                        </Button>
+                      )}
+                      <Button asChild variant="outline" size="sm" className="border-border/70">
+                        <Link href="/approver/scan">
+                          <ScanLine className="mr-2 h-3.5 w-3.5" />
+                          Approver
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
+                  <Button variant="outline" size="sm" className="border-border/70" onClick={handleSignOut}>
+                    Logg ut
+                  </Button>
+                </div>
               </div>
             </motion.div>
           </motion.div>

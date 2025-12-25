@@ -66,8 +66,8 @@ function DialogContent({
           data-slot="dialog-content"
           className={cn(
             // Positioning
-            "relative w-full max-w-[calc(100%-1rem)] sm:max-w-lg",
-            "max-h-[90vh] overflow-y-auto",
+            "relative w-full max-w-[calc(100%-1rem)] sm:max-w-2xl lg:max-w-4xl",
+            "max-h-[90vh]",
             "isolate",
             // Gradient border shell
             "overflow-hidden rounded-3xl p-[2px]",
@@ -78,6 +78,8 @@ function DialogContent({
             "duration-200 outline-none",
             // Shadow
             "shadow-[0_22px_70px_rgba(0,0,0,0.75)]",
+            // Flex layout for header/content/footer
+            "flex flex-col",
             className
           )}
           {...props}
@@ -98,8 +100,9 @@ function DialogContent({
             className={cn(
               "relative rounded-[1.45rem] border border-border/60",
               "bg-background",
-              "p-6",
-              "shadow-[0_18px_45px_rgba(0,0,0,0.55)]"
+              "flex flex-col",
+              "shadow-[0_18px_45px_rgba(0,0,0,0.55)]",
+              "max-h-[90vh]"
             )}
           >
             {children}
@@ -114,7 +117,8 @@ function DialogContent({
                   "transition-[transform,opacity,background-color,border-color,box-shadow] duration-200",
                   "hover:bg-background hover:text-foreground hover:border-primary/50 hover:shadow-[0_10px_30px_rgba(0,0,0,0.55)]",
                   "active:scale-[0.98]",
-                  "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring"
+                  "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring",
+                  "z-10"
                 )}
               >
                 <XIcon className="h-4 w-4" />
@@ -132,7 +136,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2 text-left", className)}
+      className={cn("flex flex-col gap-2 text-left px-6 pt-6 pb-4 shrink-0", className)}
       {...props}
     />
   );
@@ -143,7 +147,7 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="dialog-footer"
       className={cn(
-        "mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+        "px-6 pb-6 pt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end shrink-0 border-t border-border/50",
         className
       )}
       {...props}

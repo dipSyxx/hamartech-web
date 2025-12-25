@@ -10,7 +10,9 @@ function isProtectedPath(pathname: string) {
     pathname === '/checkout' ||
     pathname.startsWith('/checkout/') ||
     pathname === '/approver' ||
-    pathname.startsWith('/approver/')
+    pathname.startsWith('/approver/') ||
+    pathname === '/admin' ||
+    pathname.startsWith('/admin/')
   )
 }
 
@@ -30,6 +32,11 @@ export async function middleware(req: NextRequest) {
     if (token && (role === 'ADMIN' || role === 'APPROVER')) {
       return NextResponse.next()
     }
+  } else if (pathname.startsWith('/admin')) {
+    const role = (token as any)?.role
+    if (token && role === 'ADMIN') {
+      return NextResponse.next()
+    }
   } else if (token) {
     return NextResponse.next()
   }
@@ -42,5 +49,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/min-side/:path*', '/reservations/:path*', '/checkout/:path*'],
+  matcher: ['/min-side/:path*', '/reservations/:path*', '/checkout/:path*', '/admin/:path*'],
 }
