@@ -133,7 +133,6 @@ export default function ReservationsPage() {
       key: 'user.email',
       label: 'Bruker',
       sortable: true,
-      searchKey: 'user.email',
       render: (reservation) => (
         <div>
           <div className="font-medium">{reservation.user.name || reservation.user.email}</div>

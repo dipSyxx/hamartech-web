@@ -86,7 +86,6 @@ export default function VenuesPage() {
       key: 'name',
       label: 'Navn',
       sortable: true,
-      searchKey: 'name',
     },
     {
       key: 'label',

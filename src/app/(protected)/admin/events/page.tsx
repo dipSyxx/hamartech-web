@@ -123,7 +123,6 @@ export default function EventsPage() {
       key: 'title',
       label: 'Tittel',
       sortable: true,
-      searchKey: 'title',
     },
     {
       key: 'slug',

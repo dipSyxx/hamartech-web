@@ -86,7 +86,6 @@ export default function UsersPage() {
       key: 'email',
       label: 'E-post',
       sortable: true,
-      searchKey: 'email',
     },
     {
       key: 'name',
