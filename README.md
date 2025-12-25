@@ -42,6 +42,47 @@ HamarTech is a digital festival hub that brings together gaming, XR, digital art
 - **Reservation Details**: View full reservation, user, and event information
 - **Check-in History**: Track who checked in and when
 
+### Admin Dashboard Features
+
+- **Comprehensive Statistics**: Real-time dashboard with statistics for all entities
+  - User statistics (total, by role, verified/unverified)
+  - Event statistics (by track, by day)
+  - Venue statistics (by city)
+  - Reservation statistics (by status, check-in rate)
+  - Check-in statistics (total, recent activity)
+  - Audit log overview
+- **User Management**: Full CRUD operations for users
+  - Create, read, update, delete users
+  - Role management (USER, ADMIN, APPROVER)
+  - Email verification status management
+- **Event Management**: Full CRUD operations for events
+  - Create, update, delete events
+  - Track and day assignment
+  - Venue association
+  - Registration and pricing settings
+- **Venue Management**: Full CRUD operations for venues
+  - Create, read, update, delete venues
+  - Map integration (Google Maps, OpenStreetMap)
+  - City-based organization
+- **Reservation Management**: Enhanced reservation administration
+  - View all reservations with filtering
+  - Update reservation status (CONFIRMED, WAITLIST, CANCELLED)
+  - Delete reservations
+  - View check-in history per reservation
+- **Check-in Management**: View and manage check-ins
+  - List all check-ins with filtering
+  - View check-in details (user, event, timestamp, approver)
+  - Delete check-ins
+- **Audit Logs**: Comprehensive activity tracking
+  - View all administrative actions
+  - Filter by action type, entity, date
+  - See actor information and metadata
+- **Advanced Data Tables**: 
+  - Search functionality across all entities
+  - Multi-column filtering
+  - Sortable columns
+  - Responsive design (cards on mobile, tables on desktop)
+
 ### Technical Features
 
 - **Email Integration**: Maileroo API integration for:
@@ -117,6 +158,14 @@ hamartech-web/
 │   │   │   ├── login/
 │   │   │   └── register/
 │   │   ├── (protected)/               # Protected routes (middleware)
+│   │   │   ├── admin/                 # Admin dashboard
+│   │   │   │   ├── page.tsx           # Admin dashboard home
+│   │   │   │   ├── users/             # User management
+│   │   │   │   ├── events/            # Event management
+│   │   │   │   ├── venues/            # Venue management
+│   │   │   │   ├── reservations/      # Reservation management
+│   │   │   │   ├── check-ins/         # Check-in management
+│   │   │   │   └── audit-logs/        # Audit log viewer
 │   │   │   └── approver/
 │   │   │       └── scan/              # QR scanner for approvers
 │   │   ├── (site)/                    # Public site routes
@@ -131,6 +180,14 @@ hamartech-web/
 │   │   │   │   ├── [...nextauth]/   # NextAuth handler
 │   │   │   │   ├── register/        # User registration
 │   │   │   │   └── verify/          # Email verification
+│   │   │   ├── admin/                # Admin API routes
+│   │   │   │   ├── stats/            # Statistics endpoint
+│   │   │   │   ├── users/            # User CRUD
+│   │   │   │   ├── events/           # Event CRUD
+│   │   │   │   ├── venues/           # Venue CRUD
+│   │   │   │   ├── reservations/     # Reservation management
+│   │   │   │   ├── check-ins/         # Check-in management
+│   │   │   │   └── audit-logs/        # Audit log retrieval
 │   │   │   ├── events/              # Event CRUD
 │   │   │   ├── reservations/        # Reservation management
 │   │   │   ├── approver/
@@ -148,7 +205,17 @@ hamartech-web/
 │   │   │   ├── badge.tsx
 │   │   │   ├── tabs.tsx
 │   │   │   ├── spinner.tsx
+│   │   │   ├── table.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── textarea.tsx
 │   │   │   └── ...
+│   │   ├── admin/                    # Admin-specific components
+│   │   │   ├── admin-nav.tsx         # Admin navigation
+│   │   │   ├── stats-cards.tsx       # Statistics cards
+│   │   │   ├── data-table.tsx        # Universal data table
+│   │   │   ├── user-form.tsx         # User form
+│   │   │   ├── event-form.tsx        # Event form
+│   │   │   └── venue-form.tsx        # Venue form
 │   │   ├── shared/                   # Shared components
 │   │   │   ├── header/
 │   │   │   ├── footer/
@@ -254,6 +321,10 @@ hamartech-web/
 - **Public Routes**: Homepage, program, event details
 - **Authenticated Routes**: `/min-side`, `/checkout/*`, `/reservations`
 - **Approver Routes**: `/approver/*` (requires ADMIN or APPROVER role)
+- **Admin Routes**: `/admin/*` (requires ADMIN role only)
+  - Full access to admin dashboard
+  - User, event, venue, reservation management
+  - Check-in and audit log viewing
 
 ### Middleware Protection
 
@@ -291,6 +362,27 @@ hamartech-web/
 ### User
 
 - `GET /api/user` - Get current user profile
+
+### Admin (ADMIN role required)
+
+- `GET /api/admin/stats` - Get comprehensive statistics for all entities
+- `GET /api/admin/users` - List users with filtering
+- `POST /api/admin/users` - Create new user
+- `PUT /api/admin/users` - Update user (including role changes)
+- `DELETE /api/admin/users` - Delete user
+- `POST /api/admin/events` - Create new event
+- `PUT /api/admin/events` - Update event
+- `DELETE /api/admin/events` - Delete event
+- `GET /api/admin/venues` - List venues
+- `POST /api/admin/venues` - Create new venue
+- `PUT /api/admin/venues` - Update venue
+- `DELETE /api/admin/venues` - Delete venue
+- `GET /api/admin/reservations` - List all reservations with filtering
+- `PUT /api/admin/reservations` - Update reservation status
+- `DELETE /api/admin/reservations` - Delete reservation
+- `GET /api/admin/check-ins` - List check-ins with filtering
+- `DELETE /api/admin/check-ins` - Delete check-in
+- `GET /api/admin/audit-logs` - Get audit logs with filtering
 
 ## 🚀 Getting Started
 
@@ -400,9 +492,14 @@ npx prisma migrate reset
 - **Dark Mode Support**: Theme switching via next-themes
 - **Animations**: Smooth page transitions and interactions with Framer Motion
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
+  - Admin tables: Responsive cards on mobile, full tables on desktop
+  - Dialog forms: Fixed header/footer with scrollable content
 - **Accessibility**: Radix UI components for ARIA compliance
 - **Loading States**: Spinner components and skeleton screens
 - **Error Handling**: User-friendly error messages and retry mechanisms
+- **Custom Scrollbars**: Brand-themed scrollbars with gradient styling
+- **Advanced Data Tables**: Search, filter, and sort functionality
+- **Form Validation**: Real-time validation with Zod schemas
 
 ## 🔒 Security Features
 
@@ -411,8 +508,12 @@ npx prisma migrate reset
 - **Email Verification**: Required before account activation
 - **QR Token Signing**: Cryptographically signed ticket tokens
 - **Role-Based Access**: Middleware protection for sensitive routes
+  - Admin routes protected (ADMIN role only)
+  - Approver routes protected (ADMIN or APPROVER roles)
 - **Input Validation**: Zod schemas for all user inputs
 - **SQL Injection Protection**: Prisma ORM parameterized queries
+- **Audit Logging**: All admin actions are logged with actor, action, and metadata
+- **Authorization Checks**: Server-side role verification for all admin API routes
 
 ## 📧 Email Integration
 
