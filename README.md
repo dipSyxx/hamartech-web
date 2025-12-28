@@ -77,7 +77,7 @@ HamarTech is a digital festival hub that brings together gaming, XR, digital art
   - View all administrative actions
   - Filter by action type, entity, date
   - See actor information and metadata
-- **Advanced Data Tables**: 
+- **Advanced Data Tables**:
   - Search functionality across all entities
   - Multi-column filtering
   - Sortable columns

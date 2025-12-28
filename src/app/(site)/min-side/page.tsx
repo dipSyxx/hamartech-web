@@ -1,37 +1,37 @@
 'use client'
 
-import * as React from 'react'
-import Link from 'next/link'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
+import * as React from 'react'
 import { useForm } from 'react-hook-form'
 
 import { fadeIn, fadeInUp, staggerContainer } from '@/lib/animations/presets'
 
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { BackgroundGlows } from '@/components/shared/background-glows'
-import { cn } from '@/lib/utils'
-import { redirect } from 'next/navigation'
-import { signOut, useSession } from 'next-auth/react'
 import { Spinner } from '@/components/ui/spinner'
 import { useUserStore } from '@/lib/stores/user-store'
+import { cn } from '@/lib/utils'
+import { signOut, useSession } from 'next-auth/react'
+import { redirect } from 'next/navigation'
 
 import {
   CalendarDays,
+  CheckCircle2,
   Clock3,
+  ClockAlert,
+  Mail,
   MapPin,
+  ScanLine,
+  Shield,
   Ticket,
   User2,
-  Mail,
-  CheckCircle2,
-  ClockAlert,
   XCircle,
-  Shield,
-  ScanLine,
 } from 'lucide-react'
 
 import { TRACK_META, type TrackId } from '@/lib/data/program-meta'
@@ -180,40 +180,40 @@ export default function MyPage() {
   // Show spinner while checking session or fetching data
   if (sessionStatus === 'loading' || loading || !hasFetched || reservationsLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className='flex min-h-screen items-center justify-center bg-background'>
         <Spinner />
       </div>
     )
   }
 
   return (
-    <div className="relative overflow-hidden">
+    <div className='relative overflow-hidden'>
       <BackgroundGlows />
 
       <motion.section
-        id="min-side"
-        aria-labelledby="profile-heading"
-        className="border-b border-border bg-background"
+        id='min-side'
+        aria-labelledby='profile-heading'
+        className='border-b border-border bg-background'
         variants={staggerContainer(0.08, 0.1)}
-        initial="hidden"
-        animate="visible"
+        initial='hidden'
+        animate='visible'
       >
-        <div className="mx-auto max-w-6xl px-4 py-10 md:py-14 md:px-8">
+        <div className='mx-auto max-w-6xl px-4 py-10 md:py-14 md:px-8'>
           <motion.div
-            className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
+            className='flex flex-col gap-6 md:flex-row md:items-end md:justify-between'
             variants={fadeIn(0)}
-            initial="hidden"
-            animate="visible"
+            initial='hidden'
+            animate='visible'
           >
-            <div className="space-y-3">
-              <p className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                <User2 className="h-4 w-4" />
+            <div className='space-y-3'>
+              <p className='inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground'>
+                <User2 className='h-4 w-4' />
                 Min HamarTech-profil
               </p>
-              <h1 id="profile-heading" className="text-3xl font-semibold md:text-4xl">
+              <h1 id='profile-heading' className='text-3xl font-semibold md:text-4xl'>
                 Dine reservasjoner og billetter
               </h1>
-              <p className="max-w-xl text-sm text-muted-foreground md:text-base">
+              <p className='max-w-xl text-sm text-muted-foreground md:text-base'>
                 Her ser du oversikt over arrangementer du har reservert plass på, og QR-billetter du kan vise ved
                 innsjekk.
               </p>
@@ -221,47 +221,47 @@ export default function MyPage() {
 
             <motion.div
               variants={fadeInUp(0.05)}
-              className="rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-xs text-muted-foreground shadow-[0_14px_36px_rgba(0,0,0,0.6)] md:text-sm"
+              className='rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-xs text-muted-foreground shadow-[0_14px_36px_rgba(0,0,0,0.6)] md:text-sm'
             >
-              <p className="mb-1 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              <p className='mb-1 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
                 Innlogget som
               </p>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[radial-gradient(circle_at_top,#22E4FF44,transparent_55%),radial-gradient(circle_at_bottom,#F044FF44,transparent_55%)] text-sm font-semibold text-foreground shadow-[0_10px_24px_rgba(0,0,0,0.6)]">
+              <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                <div className='flex items-center gap-3'>
+                  <div className='flex h-9 w-9 items-center justify-center rounded-full bg-[radial-gradient(circle_at_top,#22E4FF44,transparent_55%),radial-gradient(circle_at_bottom,#F044FF44,transparent_55%)] text-sm font-semibold text-foreground shadow-[0_10px_24px_rgba(0,0,0,0.6)]'>
                     {(user?.name ?? user?.email ?? 'U').charAt(0)}
                   </div>
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-1 text-xs font-medium text-foreground md:text-sm">
-                      <User2 className="h-3.5 w-3.5 text-primary" />
+                  <div className='space-y-0.5'>
+                    <div className='flex items-center gap-1 text-xs font-medium text-foreground md:text-sm'>
+                      <User2 className='h-3.5 w-3.5 text-primary' />
                       <span>{user?.name ?? 'Ukjent bruker'}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground md:text-xs">
-                      <Mail className="h-3.5 w-3.5" />
+                    <div className='flex items-center gap-1 text-[11px] text-muted-foreground md:text-xs'>
+                      <Mail className='h-3.5 w-3.5' />
                       <span>{user?.email ?? 'ukjent@bruker.no'}</span>
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
                   {(user?.role === 'ADMIN' || user?.role === 'APPROVER') && (
-                    <div className="flex gap-2">
+                    <div className='flex gap-2'>
                       {user?.role === 'ADMIN' && (
-                        <Button asChild variant="outline" size="sm" className="border-border/70">
-                          <Link href="/admin">
-                            <Shield className="mr-2 h-3.5 w-3.5" />
+                        <Button asChild variant='outline' size='sm' className='border-border/70'>
+                          <Link href='/admin'>
+                            <Shield className='mr-2 h-3.5 w-3.5' />
                             Admin
                           </Link>
                         </Button>
                       )}
-                      <Button asChild variant="outline" size="sm" className="border-border/70">
-                        <Link href="/approver/scan">
-                          <ScanLine className="mr-2 h-3.5 w-3.5" />
+                      <Button asChild variant='outline' size='sm' className='border-border/70'>
+                        <Link href='/approver/scan'>
+                          <ScanLine className='mr-2 h-3.5 w-3.5' />
                           Approver
                         </Link>
                       </Button>
                     </div>
                   )}
-                  <Button variant="outline" size="sm" className="border-border/70" onClick={handleSignOut}>
+                  <Button variant='outline' size='sm' className='border-border/70' onClick={handleSignOut}>
                     Logg ut
                   </Button>
                 </div>
@@ -269,23 +269,23 @@ export default function MyPage() {
             </motion.div>
           </motion.div>
 
-          <motion.div className="mt-6" variants={fadeInUp(0.04)} initial="hidden" animate="visible">
+          <motion.div className='mt-6' variants={fadeInUp(0.04)} initial='hidden' animate='visible'>
             <ProfileForm user={user ?? null} onSave={handleProfileSave} saveMessage={saveMessage} />
           </motion.div>
 
           {reservationsError && (
             <motion.div
-              className="mt-6 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground shadow-[0_14px_36px_rgba(0,0,0,0.6)]"
+              className='mt-6 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground shadow-[0_14px_36px_rgba(0,0,0,0.6)]'
               variants={fadeInUp(0.04)}
-              initial="hidden"
-              animate="visible"
+              initial='hidden'
+              animate='visible'
             >
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              <p className='text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground'>
                 Kunne ikke hente reservasjoner
               </p>
-              <p className="mt-2 text-sm">{reservationsError}</p>
-              <div className="mt-3">
-                <Button onClick={fetchReservations} variant="outline" size="sm" className="border-border/70">
+              <p className='mt-2 text-sm'>{reservationsError}</p>
+              <div className='mt-3'>
+                <Button onClick={fetchReservations} variant='outline' size='sm' className='border-border/70'>
                   Prøv igjen
                 </Button>
               </div>
@@ -293,55 +293,55 @@ export default function MyPage() {
           )}
 
           <motion.div
-            className="mt-8 grid gap-4 md:grid-cols-3"
+            className='mt-8 grid gap-4 md:grid-cols-3'
             variants={fadeInUp(0.06)}
-            initial="hidden"
-            animate="visible"
+            initial='hidden'
+            animate='visible'
           >
             <SummaryCard
-              label="Kommende reservasjoner"
+              label='Kommende reservasjoner'
               value={upcomingReservations.length.toString()}
               icon={CalendarDays}
             />
-            <SummaryCard label="Tidligere arrangementer" value={pastReservations.length.toString()} icon={Clock3} />
+            <SummaryCard label='Tidligere arrangementer' value={pastReservations.length.toString()} icon={Clock3} />
             <SummaryCard
-              label="Forskjellige spor"
+              label='Forskjellige spor'
               value={new Set(reservations.map((r) => r.event.trackId)).size.toString()}
               icon={Ticket}
             />
           </motion.div>
 
-          <motion.div className="mt-10" variants={fadeInUp(0.08)} initial="hidden" animate="visible">
-            <Tabs defaultValue="upcoming" className="flex flex-col gap-4">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <TabsList className="flex w-fit flex-wrap gap-1 bg-secondary/40 p-1 shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
-                  <TabsTrigger value="upcoming" className="min-w-max">
+          <motion.div className='mt-10' variants={fadeInUp(0.08)} initial='hidden' animate='visible'>
+            <Tabs defaultValue='upcoming' className='flex flex-col gap-4'>
+              <div className='flex flex-col gap-3 md:flex-row md:items-center md:justify-between'>
+                <TabsList className='flex w-fit flex-wrap gap-1 bg-secondary/40 p-1 shadow-[0_10px_30px_rgba(0,0,0,0.45)]'>
+                  <TabsTrigger value='upcoming' className='min-w-max'>
                     Kommende ({upcomingReservations.length})
                   </TabsTrigger>
-                  <TabsTrigger value="past" className="min-w-max">
+                  <TabsTrigger value='past' className='min-w-max'>
                     Tidligere ({pastReservations.length})
                   </TabsTrigger>
                 </TabsList>
 
-                <p className="text-xs text-muted-foreground md:text-sm">
+                <p className='text-xs text-muted-foreground md:text-sm'>
                   Her finner du dine aktive reservasjoner og QR-billetter for innsjekk.
                 </p>
               </div>
 
-              <TabsContent value="upcoming" className="mt-2 space-y-4">
+              <TabsContent value='upcoming' className='mt-2 space-y-4'>
                 {upcomingReservations.length === 0 ? (
                   <EmptyState
-                    title="Ingen kommende reservasjoner"
-                    description="Når du reserverer plass på arrangementer under HamarTech, vil de dukke opp her."
+                    title='Ingen kommende reservasjoner'
+                    description='Når du reserverer plass på arrangementer under HamarTech, vil de dukke opp her.'
                   />
                 ) : (
-                  <div className="space-y-4">
+                  <div className='space-y-4'>
                     {upcomingReservations.map((reservation, index) => (
                       <motion.div
                         key={reservation.id}
                         variants={fadeInUp(0.04 * index)}
-                        initial="hidden"
-                        animate="visible"
+                        initial='hidden'
+                        animate='visible'
                         whileHover={{ y: -4, scale: 1.01 }}
                         transition={{
                           type: 'spring',
@@ -356,20 +356,20 @@ export default function MyPage() {
                 )}
               </TabsContent>
 
-              <TabsContent value="past" className="mt-2 space-y-4">
+              <TabsContent value='past' className='mt-2 space-y-4'>
                 {pastReservations.length === 0 ? (
                   <EmptyState
-                    title="Ingen tidligere arrangementer"
-                    description="Etter at festivalen er gjennomført, vil tidligere arrangementer du har deltatt på vises her."
+                    title='Ingen tidligere arrangementer'
+                    description='Etter at festivalen er gjennomført, vil tidligere arrangementer du har deltatt på vises her.'
                   />
                 ) : (
-                  <div className="space-y-4">
+                  <div className='space-y-4'>
                     {pastReservations.map((reservation, index) => (
                       <motion.div
                         key={reservation.id}
                         variants={fadeInUp(0.04 * index)}
-                        initial="hidden"
-                        animate="visible"
+                        initial='hidden'
+                        animate='visible'
                         whileHover={{ y: -3, scale: 1.005 }}
                         transition={{
                           type: 'spring',
@@ -399,14 +399,14 @@ type SummaryCardProps = {
 
 function SummaryCard({ label, value, icon: Icon }: SummaryCardProps) {
   return (
-    <Card className="border-border/70 bg-background/70 shadow-[0_12px_32px_rgba(0,0,0,0.6)]">
-      <CardContent className="flex items-center justify-between gap-3 px-4 py-4">
+    <Card className='border-border/70 bg-background/70 shadow-[0_12px_32px_rgba(0,0,0,0.6)]'>
+      <CardContent className='flex items-center justify-between gap-3 px-4 py-4'>
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
-          <p className="mt-2 text-2xl font-semibold text-foreground">{value}</p>
+          <p className='text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>{label}</p>
+          <p className='mt-2 text-2xl font-semibold text-foreground'>{value}</p>
         </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-secondary/30">
-          <Icon className="h-5 w-5 text-primary" />
+        <div className='flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-secondary/30'>
+          <Icon className='h-5 w-5 text-primary' />
         </div>
       </CardContent>
     </Card>
@@ -440,81 +440,81 @@ function ReservationCard({ item, isUpcoming }: ReservationCardProps) {
         'hover:border-primary/70 hover:bg-background/90 hover:shadow-[0_18px_55px_rgba(0,0,0,0.75)]',
       )}
     >
-      <CardHeader className="border-b border-border/60 pb-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div className="space-y-1">
-            <p className="flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+      <CardHeader className='border-b border-border/60 pb-4'>
+        <div className='flex flex-col gap-3 md:flex-row md:items-start md:justify-between'>
+          <div className='space-y-1'>
+            <p className='flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
               <span>{event.dayLabel}</span>
-              <span className="h-1 w-1 rounded-full bg-muted-foreground/60" />
+              <span className='h-1 w-1 rounded-full bg-muted-foreground/60' />
               <span>
                 {event.weekday} – {event.dateLabel}
               </span>
             </p>
-            <CardTitle className="text-base font-semibold md:text-lg">{event.title}</CardTitle>
+            <CardTitle className='text-base font-semibold md:text-lg'>{event.title}</CardTitle>
 
-            <CardDescription className="flex flex-wrap items-center gap-2 text-[11px] md:text-xs">
-              <span className="inline-flex items-center gap-1 text-muted-foreground">
-                <Clock3 className="h-3.5 w-3.5" />
+            <CardDescription className='flex flex-wrap items-center gap-2 text-[11px] md:text-xs'>
+              <span className='inline-flex items-center gap-1 text-muted-foreground'>
+                <Clock3 className='h-3.5 w-3.5' />
                 {event.timeLabel}
               </span>
-              <span className="inline-flex items-center gap-1 text-muted-foreground">
-                <MapPin className="h-3.5 w-3.5" />
+              <span className='inline-flex items-center gap-1 text-muted-foreground'>
+                <MapPin className='h-3.5 w-3.5' />
                 {event.venueLabel}
               </span>
             </CardDescription>
           </div>
 
-          <div className="flex flex-col items-end gap-2">
-            <Badge variant="outline" className={cn('border text-[10px] md:text-[11px]', statusMeta.className)}>
-              <statusMeta.icon className="mr-1 h-3.5 w-3.5" />
+          <div className='flex flex-col items-end gap-2'>
+            <Badge variant='outline' className={cn('border text-[10px] md:text-[11px]', statusMeta.className)}>
+              <statusMeta.icon className='mr-1 h-3.5 w-3.5' />
               {statusMeta.label}
             </Badge>
-            <Badge variant="outline" className={cn('border text-[10px] md:text-[11px]', track.badgeClass)}>
-              <TrackIcon className="mr-1 h-3 w-3" />
+            <Badge variant='outline' className={cn('border text-[10px] md:text-[11px]', track.badgeClass)}>
+              <TrackIcon className='mr-1 h-3 w-3' />
               {track.shortLabel}
             </Badge>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="pt-4">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-2 text-sm text-muted-foreground md:text-[15px]">
+      <CardContent className='pt-4'>
+        <div className='flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
+          <div className='space-y-2 text-sm text-muted-foreground md:text-[15px]'>
             <p>{event.description}</p>
-            <p className="text-[11px] text-muted-foreground md:text-xs">
-              Arrangør: <span className="text-foreground font-medium">{event.host}</span>
+            <p className='text-[11px] text-muted-foreground md:text-xs'>
+              Arrangør: <span className='text-foreground font-medium'>{event.host}</span>
             </p>
           </div>
 
           {isUpcoming && item.qrDataUrl && (
-            <div className="mt-1 flex flex-col items-center gap-2 rounded-2xl border border-border/70 bg-background/70 p-3 text-center text-[11px] text-muted-foreground shadow-[0_10px_30px_rgba(0,0,0,0.6)] md:w-52">
+            <div className='mt-1 flex flex-col items-center gap-2 rounded-2xl border border-border/70 bg-background/70 p-3 text-center text-[11px] text-muted-foreground shadow-[0_10px_30px_rgba(0,0,0,0.6)] md:w-52'>
               <img
                 src={item.qrDataUrl}
-                alt="QR billett"
+                alt='QR billett'
                 width={160}
                 height={160}
-                className="h-40 w-40 rounded-xl border border-border/70 bg-background/80 object-contain"
+                className='h-40 w-40 rounded-xl border border-border/70 bg-background/80 object-contain'
               />
               {item.ticketCode && (
-                <p className="font-mono text-[10px] text-muted-foreground">Ticket: {item.ticketCode}</p>
+                <p className='font-mono text-[10px] text-muted-foreground'>Ticket: {item.ticketCode}</p>
               )}
               {item.ticketUrl && (
-                <Button asChild variant="outline" size="sm" className="border-border/70">
-                  <a href={item.ticketUrl} target="_blank" rel="noreferrer">
+                <Button asChild variant='outline' size='sm' className='border-border/70'>
+                  <a href={item.ticketUrl} target='_blank' rel='noreferrer'>
                     Åpne billett
                   </a>
                 </Button>
               )}
               {item.status !== 'CONFIRMED' && (
-                <p className="text-[10px] text-muted-foreground/80">QR brukes ved innsjekk når status er Bekreftet.</p>
+                <p className='text-[10px] text-muted-foreground/80'>QR brukes ved innsjekk når status er Bekreftet.</p>
               )}
             </div>
           )}
         </div>
       </CardContent>
 
-      <CardFooter className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4">
-        <div className="flex flex-wrap items-center gap-2 text-[11px] md:text-xs">
+      <CardFooter className='flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4'>
+        <div className='flex flex-wrap items-center gap-2 text-[11px] md:text-xs'>
           <Badge
             variant={event.isFree ? 'secondary' : 'outline'}
             className={cn('border-border/60 bg-secondary/50', !event.isFree && 'bg-transparent')}
@@ -522,16 +522,16 @@ function ReservationCard({ item, isUpcoming }: ReservationCardProps) {
             {event.isFree ? 'Gratis' : 'Billetter'}
           </Badge>
           {event.requiresRegistration && (
-            <Badge variant="outline" className="border-border/70 text-[11px]">
+            <Badge variant='outline' className='border-border/70 text-[11px]'>
               Påmelding nødvendig
             </Badge>
           )}
         </div>
 
-        <Button asChild size="sm" className="text-xs border-0">
+        <Button asChild size='sm' className='text-xs border-0'>
           <Link href={`/program/${event.slug}`}>
             Se detaljer
-            <Ticket className="ml-2 h-4 w-4" />
+            <Ticket className='ml-2 h-4 w-4' />
           </Link>
         </Button>
       </CardFooter>
@@ -585,46 +585,46 @@ function ProfileForm({
   }
 
   return (
-    <Card className="border-border/70 bg-background/70 shadow-[0_12px_32px_rgba(0,0,0,0.6)]">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-xl font-semibold">Profil</CardTitle>
+    <Card className='border-border/70 bg-background/70 shadow-[0_12px_32px_rgba(0,0,0,0.6)]'>
+      <CardHeader className='pb-3'>
+        <CardTitle className='text-xl font-semibold'>Profil</CardTitle>
         <CardDescription>Oppdater navn og telefon. E-post kan ikke endres.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Navn</label>
+        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+          <div className='space-y-1.5'>
+            <label className='text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground'>Navn</label>
             <Input
-              type="text"
-              autoComplete="name"
+              type='text'
+              autoComplete='name'
               {...register('name', { required: 'Navn er påkrevd' })}
               aria-invalid={!!errors.name}
             />
-            {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+            {errors.name && <p className='text-xs text-destructive'>{errors.name.message}</p>}
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Telefon</label>
+          <div className='space-y-1.5'>
+            <label className='text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground'>Telefon</label>
             <Input
-              type="tel"
-              autoComplete="tel"
+              type='tel'
+              autoComplete='tel'
               {...register('phone', {
                 minLength: { value: 4, message: 'For kort nummer' },
               })}
               aria-invalid={!!errors.phone}
             />
-            {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
+            {errors.phone && <p className='text-xs text-destructive'>{errors.phone.message}</p>}
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">E-post</label>
-            <Input type="email" disabled {...register('email')} />
+          <div className='space-y-1.5'>
+            <label className='text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground'>E-post</label>
+            <Input type='email' disabled {...register('email')} />
           </div>
 
-          {saveMessage && <p className="text-xs text-emerald-400">{saveMessage}</p>}
+          {saveMessage && <p className='text-xs text-emerald-400'>{saveMessage}</p>}
 
-          <div className="flex justify-end">
-            <Button type="submit" size="sm" disabled={isSubmitting || !user} className="border-0">
+          <div className='flex justify-end'>
+            <Button type='submit' size='sm' disabled={isSubmitting || !user} className='border-0'>
               {isSubmitting ? 'Lagrer...' : 'Lagre endringer'}
             </Button>
           </div>
@@ -636,15 +636,15 @@ function ProfileForm({
 
 function EmptyState({ title, description }: EmptyStateProps) {
   return (
-    <Card className="border-border/70 bg-background/70 shadow-[0_10px_30px_rgba(0,0,0,0.55)]">
-      <CardContent className="px-4 py-6 text-sm text-muted-foreground md:text-base">
-        <p className="text-sm font-semibold text-foreground md:text-base">{title}</p>
-        <p className="mt-2 text-xs text-muted-foreground md:text-sm">{description}</p>
-        <div className="mt-4">
-          <Button asChild variant="outline" size="sm" className="border-border/70">
-            <Link href="/program">
+    <Card className='border-border/70 bg-background/70 shadow-[0_10px_30px_rgba(0,0,0,0.55)]'>
+      <CardContent className='px-4 py-6 text-sm text-muted-foreground md:text-base'>
+        <p className='text-sm font-semibold text-foreground md:text-base'>{title}</p>
+        <p className='mt-2 text-xs text-muted-foreground md:text-sm'>{description}</p>
+        <div className='mt-4'>
+          <Button asChild variant='outline' size='sm' className='border-border/70'>
+            <Link href='/program'>
               Gå til programmet
-              <CalendarDays className="ml-2 h-4 w-4" />
+              <CalendarDays className='ml-2 h-4 w-4' />
             </Link>
           </Button>
         </div>
