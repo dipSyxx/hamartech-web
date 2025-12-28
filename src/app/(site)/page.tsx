@@ -17,6 +17,7 @@ import React from 'react'
 import { useUserStore } from '@/lib/stores/user-store'
 import { Spinner } from '@/components/ui/spinner'
 import { useSession } from 'next-auth/react'
+import { OrganizationStructuredData } from '@/components/seo/structured-data'
 
 type HomeEvent = {
   id: string
@@ -139,6 +140,7 @@ export default function Home() {
 
   return (
     <div className="relative overflow-hidden">
+      <OrganizationStructuredData />
       <BackgroundGlows />
 
       {/* HERO */}
