@@ -25,12 +25,12 @@ export type EventItem = {
 };
 
 /**
- * We currently display "Uke 53" in UI. For real DateTime fields we need a real calendar date.
+ * We currently display "Uke 4" in UI. For real DateTime fields we need a real calendar date.
  * Assumption: Festival runs in ISO week 42 of FESTIVAL_YEAR.
  * Week 42 in 2025 is Oct 13–19.
  */
-const FESTIVAL_YEAR = 2025;
-const FESTIVAL_ISO_WEEK = 53;
+const FESTIVAL_YEAR = 2026;
+const FESTIVAL_ISO_WEEK = 4;
 
 // Week 42 in Norway is still daylight saving time (typically +02:00).
 // If you want to be 100% correct for other weeks/years, handle tz via date-fns-tz later.
@@ -103,7 +103,7 @@ const RAW_EVENTS: RawEvent[] = [
     dayId: "day1",
     dayLabel: "Dag 1 – Opening & Media Arts",
     weekday: "Mandag",
-    date: "Uke 53",
+    date: "Uke 4",
     time: "18:00–21:00",
     trackId: "creative",
     venue: "Hamar kulturhus",
@@ -122,7 +122,7 @@ const RAW_EVENTS: RawEvent[] = [
     dayId: "day1",
     dayLabel: "Dag 1 – Opening & Media Arts",
     weekday: "Mandag",
-    date: "Uke 53",
+    date: "Uke 4",
     time: "20:00–22:00",
     trackId: "creative",
     venue: "Hamar sentrum",
@@ -143,7 +143,7 @@ const RAW_EVENTS: RawEvent[] = [
     dayId: "day2",
     dayLabel: "Dag 2 – Games & E-sport",
     weekday: "Tirsdag",
-    date: "Uke 53",
+    date: "Uke 4",
     time: "16:00–22:00",
     trackId: "games",
     venue: "PARK Hamar / spillsone",
@@ -162,14 +162,14 @@ const RAW_EVENTS: RawEvent[] = [
     dayId: "day2",
     dayLabel: "Dag 2 – Games & E-sport",
     weekday: "Tirsdag",
-    date: "Uke 53",
+    date: "Uke 4",
     time: "17:30–19:00",
     trackId: "games",
     venue: "PARK Hamar / verkstedrom",
     venueId: "park-hamar",
     targetGroup: "Studenter, unge skapere",
     host: "Spillskolen & Hamar Game Collective",
-    isFree: false,
+    isFree: true,
     requiresRegistration: true,
   },
 
@@ -183,7 +183,7 @@ const RAW_EVENTS: RawEvent[] = [
     dayId: "day3",
     dayLabel: "Dag 3 – XR & Immersive Learning",
     weekday: "Onsdag",
-    date: "Uke 53",
+    date: "Uke 4",
     time: "12:00–17:00",
     trackId: "xr",
     venue: "VRINN / Høgskolen i Innlandet",
@@ -202,14 +202,14 @@ const RAW_EVENTS: RawEvent[] = [
     dayId: "day3",
     dayLabel: "Dag 3 – XR & Immersive Learning",
     weekday: "Onsdag",
-    date: "Uke 53",
+    date: "Uke 4",
     time: "14:00–16:00",
     trackId: "xr",
     venue: "Høgskolen i Innlandet",
     venueId: "inn-campus-hamar",
     targetGroup: "Lærere, skoleledere, utdanningsfolk",
     host: "Høgskolen i Innlandet",
-    isFree: false,
+    isFree: true,
     requiresRegistration: true,
   },
 
@@ -223,7 +223,7 @@ const RAW_EVENTS: RawEvent[] = [
     dayId: "day4",
     dayLabel: "Dag 4 – Youth & Coding",
     weekday: "Torsdag",
-    date: "Uke 53",
+    date: "Uke 4",
     time: "17:00–20:00",
     trackId: "youth",
     venue: "Katta teknologiske treningssenter (KTT)",
@@ -242,7 +242,7 @@ const RAW_EVENTS: RawEvent[] = [
     dayId: "day4",
     dayLabel: "Dag 4 – Youth & Coding",
     weekday: "Torsdag",
-    date: "Uke 53",
+    date: "Uke 4",
     time: "17:30–21:00",
     trackId: "youth",
     venue: "KTT / makerspace",
@@ -263,7 +263,7 @@ const RAW_EVENTS: RawEvent[] = [
     dayId: "day5",
     dayLabel: "Dag 5 – Family & City Experience",
     weekday: "Fredag",
-    date: "Uke 53",
+    date: "Uke 4",
     time: "12:00–17:00",
     trackId: "creative",
     venue: "Hamar sentrum / Hamar kulturhus",
@@ -282,7 +282,7 @@ const RAW_EVENTS: RawEvent[] = [
     dayId: "day5",
     dayLabel: "Dag 5 – Family & City Experience",
     weekday: "Fredag",
-    date: "Uke 53",
+    date: "Uke 4",
     time: "13:00–16:00",
     trackId: "xr",
     venue: "Hamar sentrum",
@@ -303,14 +303,14 @@ const RAW_EVENTS: RawEvent[] = [
     dayId: "day6",
     dayLabel: "Dag 6 – Business & Innovation",
     weekday: "Lørdag",
-    date: "Uke 53",
+    date: "Uke 4",
     time: "09:00–12:00",
     trackId: "business",
     venue: "Hamar kulturhus / konferansesal",
     venueId: "hamar-kulturhus",
     targetGroup: "Næringsliv, gründere, beslutningstakere",
     host: "Hamar næringsforum & Hamar kommune",
-    isFree: false,
+    isFree: true,
     requiresRegistration: true,
   },
   {
@@ -322,14 +322,14 @@ const RAW_EVENTS: RawEvent[] = [
     dayId: "day6",
     dayLabel: "Dag 6 – Business & Innovation",
     weekday: "Lørdag",
-    date: "Uke 53",
+    date: "Uke 4",
     time: "18:00–21:00",
     trackId: "business",
     venue: "Hamar kulturhus / scene",
     venueId: "hamar-kulturhus",
     targetGroup: "Investorer, næringsliv, studenter",
     host: "Hamar Game Collective, VRINN, Hamar næringsforum",
-    isFree: false,
+    isFree: true,
     requiresRegistration: true,
   },
 
@@ -343,7 +343,7 @@ const RAW_EVENTS: RawEvent[] = [
     dayId: "day7",
     dayLabel: "Dag 7 – International & Closing Day",
     weekday: "Søndag",
-    date: "Uke 53",
+    date: "Uke 4",
     time: "12:00–15:00",
     trackId: "creative",
     venue: "Hamar kulturhus",
@@ -362,7 +362,7 @@ const RAW_EVENTS: RawEvent[] = [
     dayId: "day7",
     dayLabel: "Dag 7 – International & Closing Day",
     weekday: "Søndag",
-    date: "Uke 53",
+    date: "Uke 4",
     time: "18:00–20:00",
     trackId: "business",
     venue: "Hamar kulturhus",
