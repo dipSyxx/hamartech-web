@@ -49,7 +49,7 @@ export default function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVerifyingCode, setIsVerifyingCode] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const [codeModalOpen, setCodeModalOpen] = useState(true);
+  const [codeModalOpen, setCodeModalOpen] = useState(false);
   const [codeValue, setCodeValue] = useState("");
   const [codeError, setCodeError] = useState<string | null>(null);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
