@@ -1,16 +1,16 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { motion } from 'framer-motion'
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { motion } from "framer-motion";
 
-import { registerSchema, type RegisterValues } from '@/lib/validation/auth'
-import { fadeIn, scaleIn, staggerContainer } from '@/lib/animations/presets'
+import { registerSchema, type RegisterValues } from "@/lib/validation/auth";
+import { fadeIn, scaleIn, staggerContainer } from "@/lib/animations/presets";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -18,24 +18,42 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
+} from "@/components/ui/dialog";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 
-import { User2, Mail, LockKeyhole, ArrowRight, Sparkles, Phone } from 'lucide-react'
+import {
+  User2,
+  Mail,
+  LockKeyhole,
+  ArrowRight,
+  Sparkles,
+  Phone,
+} from "lucide-react";
 
 export default function RegisterPage() {
-  const router = useRouter()
-  const [serverError, setServerError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isVerifyingCode, setIsVerifyingCode] = useState(false)
-  const [isResending, setIsResending] = useState(false)
-  const [codeModalOpen, setCodeModalOpen] = useState(false)
-  const [codeValue, setCodeValue] = useState('')
-  const [codeError, setCodeError] = useState<string | null>(null)
-  const [pendingEmail, setPendingEmail] = useState<string | null>(null)
-  const [pendingName, setPendingName] = useState<string | null>(null)
+  const router = useRouter();
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [codeModalOpen, setCodeModalOpen] = useState(true);
+  const [codeValue, setCodeValue] = useState("");
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [pendingName, setPendingName] = useState<string | null>(null);
 
   const {
     register,
@@ -45,129 +63,138 @@ export default function RegisterPage() {
   } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: '',
-      phone: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
+      name: "",
+      phone: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
     },
-  })
+  });
 
   const onSubmit = async (values: RegisterValues) => {
-    setServerError(null)
-    setCodeError(null)
-    setIsSubmitting(true)
+    setServerError(null);
+    setCodeError(null);
+    setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: values.name,
           phone: values.phone,
           email: values.email,
           password: values.password,
         }),
-      })
+      });
 
-      const data = await res.json()
+      const data = await res.json();
       if (!res.ok) {
-        setServerError(data?.message ?? 'Kunne ikke sende verifiseringskode.')
-        return
+        setServerError(data?.message ?? "Kunne ikke sende verifiseringskode.");
+        return;
       }
 
-      setPendingEmail(values.email)
-      setPendingName(values.name)
-      setCodeValue('')
-      setCodeModalOpen(true)
+      setPendingEmail(values.email);
+      setPendingName(values.name);
+      setCodeValue("");
+      setCodeModalOpen(true);
     } catch (error) {
-      setServerError('Uventet feil. Prøv igjen.')
+      setServerError("Uventet feil. Prøv igjen.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleVerifyCode = async () => {
-    if (!pendingEmail) return
+    if (!pendingEmail) return;
 
     if (codeValue.trim().length !== 6) {
-      setCodeError('Skriv inn koden på 6 sifre.')
-      return
+      setCodeError("Skriv inn koden på 6 sifre.");
+      return;
     }
 
-    setIsVerifyingCode(true)
-    setCodeError(null)
+    setIsVerifyingCode(true);
+    setCodeError(null);
 
     try {
-      const res = await fetch('/api/auth/register/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/register/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: pendingEmail,
           code: codeValue,
         }),
-      })
+      });
 
-      const data = await res.json()
+      const data = await res.json();
       if (!res.ok) {
-        setCodeError(data?.message ?? 'Kunne ikke verifisere koden.')
-        return
+        setCodeError(data?.message ?? "Kunne ikke verifisere koden.");
+        return;
       }
 
-      setCodeModalOpen(false)
-      router.push(`/login?message=${encodeURIComponent('Registreringen er bekreftet. Logg inn.')}`)
+      setCodeModalOpen(false);
+      router.push(
+        `/login?message=${encodeURIComponent(
+          "Registreringen er bekreftet. Logg inn."
+        )}`
+      );
     } catch (error) {
-      setCodeError('Kunne ikke verifisere koden. Prøv igjen.')
+      setCodeError("Kunne ikke verifisere koden. Prøv igjen.");
     } finally {
-      setIsVerifyingCode(false)
+      setIsVerifyingCode(false);
     }
-  }
+  };
 
   const handleResend = async () => {
-    const values = getValues()
-    setCodeError(null)
-    setServerError(null)
-    setIsResending(true)
+    const values = getValues();
+    setCodeError(null);
+    setServerError(null);
+    setIsResending(true);
 
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: values.name,
           phone: values.phone,
           email: values.email,
           password: values.password,
         }),
-      })
+      });
 
-      const data = await res.json()
+      const data = await res.json();
       if (!res.ok) {
-        setCodeError(data?.message ?? 'Kunne ikke sende ny kode.')
-        return
+        setCodeError(data?.message ?? "Kunne ikke sende ny kode.");
+        return;
       }
 
-      setPendingEmail(values.email)
-      setPendingName(values.name)
-      setCodeValue('')
+      setPendingEmail(values.email);
+      setPendingName(values.name);
+      setCodeValue("");
     } catch (error) {
-      setCodeError('Kunne ikke sende ny kode. Prøv igjen.')
+      setCodeError("Kunne ikke sende ny kode. Prøv igjen.");
     } finally {
-      setIsResending(false)
+      setIsResending(false);
     }
-  }
+  };
 
   const handleModalChange = (open: boolean) => {
-    setCodeModalOpen(open)
+    setCodeModalOpen(open);
     if (!open) {
-      setCodeValue('')
-      setCodeError(null)
+      setCodeValue("");
+      setCodeError(null);
     }
-  }
+  };
 
   return (
     <>
-      <motion.div className="w-full max-w-md" variants={staggerContainer(0.06, 0.1)} initial="hidden" animate="visible">
+      <motion.div
+        className="w-full max-w-md"
+        variants={staggerContainer(0.06, 0.1)}
+        initial="hidden"
+        animate="visible"
+      >
         <motion.div
           className="mb-4 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground"
           variants={fadeIn(0)}
@@ -177,20 +204,26 @@ export default function RegisterPage() {
         </motion.div>
 
         {/* Gradient frame + card */}
-        <motion.div className="relative overflow-hidden rounded-[1.7rem] p-[2px]" variants={scaleIn(0.02)}>
+        <motion.div
+          className="relative overflow-hidden rounded-[1.7rem] p-[2px]"
+          variants={scaleIn(0.02)}
+        >
           <motion.div
             aria-hidden
             className="pointer-events-none absolute inset-0 rounded-[1.7rem] bg-[conic-gradient(from_0deg,#22E4FF,#5B5BFF,#F044FF,#22E4FF)] opacity-85 blur-[6px]"
             animate={{ rotate: 360 }}
-            transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
-            style={{ willChange: 'transform' }}
+            transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+            style={{ willChange: "transform" }}
           />
 
           <Card className="relative rounded-[1.6rem] border-border/70 bg-background shadow-[0_24px_70px_rgba(0,0,0,0.8)]">
             <CardHeader className="pb-4">
-              <CardTitle className="text-2xl font-semibold md:text-3xl">Opprett konto</CardTitle>
+              <CardTitle className="text-2xl font-semibold md:text-3xl">
+                Opprett konto
+              </CardTitle>
               <CardDescription className="mt-2 text-sm text-muted-foreground md:text-[15px]">
-                Lag en HamarTech-profil for å reservere plasser og lagre favorittarrangementer.
+                Lag en HamarTech-profil for å reservere plasser og lagre
+                favorittarrangementer.
               </CardDescription>
             </CardHeader>
 
@@ -213,10 +246,14 @@ export default function RegisterPage() {
                       placeholder="Ditt fulle navn"
                       className="pl-8"
                       aria-invalid={!!errors.name}
-                      {...register('name')}
+                      {...register("name")}
                     />
                   </div>
-                  {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+                  {errors.name && (
+                    <p className="text-xs text-destructive">
+                      {errors.name.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Telefon */}
@@ -236,10 +273,14 @@ export default function RegisterPage() {
                       placeholder="+47 900 00 000"
                       className="pl-8"
                       aria-invalid={!!errors.phone}
-                      {...register('phone')}
+                      {...register("phone")}
                     />
                   </div>
-                  {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
+                  {errors.phone && (
+                    <p className="text-xs text-destructive">
+                      {errors.phone.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* E-post */}
@@ -259,10 +300,14 @@ export default function RegisterPage() {
                       placeholder="din.epost@eksempel.no"
                       className="pl-8"
                       aria-invalid={!!errors.email}
-                      {...register('email')}
+                      {...register("email")}
                     />
                   </div>
-                  {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+                  {errors.email && (
+                    <p className="text-xs text-destructive">
+                      {errors.email.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Passord */}
@@ -282,10 +327,14 @@ export default function RegisterPage() {
                       placeholder="Minst 8 tegn"
                       className="pl-8"
                       aria-invalid={!!errors.password}
-                      {...register('password')}
+                      {...register("password")}
                     />
                   </div>
-                  {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
+                  {errors.password && (
+                    <p className="text-xs text-destructive">
+                      {errors.password.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Bekreft passord */}
@@ -305,24 +354,33 @@ export default function RegisterPage() {
                       placeholder="Skriv passordet på nytt"
                       className="pl-8"
                       aria-invalid={!!errors.confirmPassword}
-                      {...register('confirmPassword')}
+                      {...register("confirmPassword")}
                     />
                   </div>
                   {errors.confirmPassword && (
-                    <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>
+                    <p className="text-xs text-destructive">
+                      {errors.confirmPassword.message}
+                    </p>
                   )}
                 </div>
 
                 {/* Errors */}
-                {serverError && <p className="text-xs text-destructive">{serverError}</p>}
+                {serverError && (
+                  <p className="text-xs text-destructive">{serverError}</p>
+                )}
 
                 <p className="text-[11px] text-muted-foreground md:text-xs">
                   Du får en kode på e-post for å bekrefte kontoen din.
                 </p>
 
                 {/* Submit */}
-                <Button type="submit" size="lg" className="mt-1 w-full justify-center border-0" disabled={isSubmitting}>
-                  {isSubmitting ? 'Sender kode...' : 'Send verifiseringskode'}
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="mt-1 w-full justify-center border-0"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Sender kode..." : "Send verifiseringskode"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </form>
@@ -330,8 +388,11 @@ export default function RegisterPage() {
 
             <CardFooter className="flex flex-col items-center gap-2 border-t border-border/60 pt-4 text-xs text-muted-foreground md:text-sm">
               <p>
-                Har du allerede konto?{' '}
-                <Link href="/login" className="text-foreground underline-offset-4 hover:text-primary hover:underline">
+                Har du allerede konto?{" "}
+                <Link
+                  href="/login"
+                  className="text-foreground underline-offset-4 hover:text-primary hover:underline"
+                >
                   Logg inn
                 </Link>
               </p>
@@ -345,19 +406,21 @@ export default function RegisterPage() {
           <DialogHeader>
             <DialogTitle>Bekreft e-postadressen</DialogTitle>
             <DialogDescription>
-              Vi har sendt en 6-sifret kode til{' '}
-              <span className="font-medium text-foreground">{pendingEmail ?? 'e-posten din'}</span>. Skriv den inn for å
-              bekrefte {pendingName ?? 'kontoen'}.
+              Vi har sendt en 6-sifret kode til{" "}
+              <span className="font-medium text-foreground">
+                {pendingEmail ?? "e-posten din"}
+              </span>
+              . Skriv den inn for å bekrefte {pendingName ?? "kontoen"}.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="mt-4 space-y-3 mb-4">
+          <div className="mt-4 space-y-3 mb-4 ml-auto mr-auto">
             <InputOTP
               maxLength={6}
               value={codeValue}
               onChange={(value) => {
-                setCodeValue(value.replace(/\D/g, ''))
-                setCodeError(null)
+                setCodeValue(value.replace(/\D/g, ""));
+                setCodeError(null);
               }}
             >
               <InputOTPGroup className="w-full justify-between">
@@ -367,23 +430,29 @@ export default function RegisterPage() {
               </InputOTPGroup>
             </InputOTP>
 
-            {codeError && <p className="text-xs text-destructive">{codeError}</p>}
+            {codeError && (
+              <p className="text-xs text-destructive">{codeError}</p>
+            )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={handleResend} disabled={isResending || isVerifyingCode}>
-              {isResending ? 'Sender...' : 'Send ny kode'}
+            <Button
+              variant="outline"
+              onClick={handleResend}
+              disabled={isResending || isVerifyingCode}
+            >
+              {isResending ? "Sender..." : "Send ny kode"}
             </Button>
             <Button
               onClick={handleVerifyCode}
               disabled={codeValue.trim().length !== 6 || isVerifyingCode}
               className="border-0"
             >
-              {isVerifyingCode ? 'Verifiserer...' : 'Bekreft kode'}
+              {isVerifyingCode ? "Verifiserer..." : "Bekreft kode"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
